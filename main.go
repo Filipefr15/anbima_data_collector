@@ -13,8 +13,10 @@ import (
 )
 
 func main() {
-	url := "https://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_202508.zip"
-	output := "inf_diario_fi_202508.zip"
+	ano := 2025
+	mes := 8
+	url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_%d%d.zip", ano, mes)
+	output := fmt.Sprintf("inf_diario_fi_%d%d.zip", ano, mes)
 	dest := "unzipped_files"
 
 	err := downloadFile(url, output)
@@ -22,7 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	err = Unzip(output, dest)
+	err = unzip(output, dest)
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +57,7 @@ func downloadFile(url, output string) error {
 	return nil
 }
 
-func Unzip(src, dest string) error {
+func unzip(src, dest string) error {
 	r, err := zip.OpenReader(src)
 	if err != nil {
 		return err
