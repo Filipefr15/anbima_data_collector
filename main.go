@@ -1,122 +1,77 @@
 package main
 
 import (
-	"archive/zip"
-	"context"
 	"fmt"
-	"io"
 	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/carlmjohnson/requests"
+	"sync"
 )
 
+type Job struct {
+	ano  int
+	mes  int
+	url  string
+	file string
+	dest string
+}
+
 func main() {
-	ano := 2025
-	mes := 8
-	url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/INF_DIARIO/DADOS/inf_diario_fi_%d%d.zip", ano, mes)
-	output := fmt.Sprintf("inf_diario_fi_%d%d.zip", ano, mes)
-	dest := "unzipped_files"
+	var jobs []Job
+	objeto_buscado := []string{"inf_diario", "lamina"}
 
-	err := downloadFile(url, output)
-	if err != nil {
-		panic(err)
-	}
+	for _, objeto := range objeto_buscado {
+		for ano := 2024; ano >= 2021; ano-- {
+			for mes := 12; mes >= 1; mes-- {
+				url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/%s/DADOS/%s_fi_%d%02d.zip", objeto, objeto, ano, mes)
+				output := fmt.Sprintf("%s_fi_%d%02d.zip", objeto, ano, mes)
+				dest := objeto
 
-	err = unzip(output, dest)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Arquivo descompactado em:", dest)
-
-	if err := os.Remove(output); err != nil {
-		fmt.Printf("Erro ao excluir o arquivo %s: %v\n", output, err)
-	} else {
-		fmt.Printf("Arquivo %s excluído com sucesso.\n", output)
-	}
-}
-
-func downloadFile(url, output string) error {
-	f, err := os.Create(output)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	err = requests.
-		URL(url).
-		ToWriter(f).
-		Fetch(context.Background())
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("Download concluído:", output)
-
-	return nil
-}
-
-func unzip(src, dest string) error {
-	r, err := zip.OpenReader(src)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		if err := r.Close(); err != nil {
-			panic(err)
-		}
-	}()
-
-	os.MkdirAll(dest, 0755)
-
-	// Closure to address file descriptors issue with all the deferred .Close() methods
-	extractAndWriteFile := func(f *zip.File) error {
-		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-		defer func() {
-			if err := rc.Close(); err != nil {
-				panic(err)
+				jobs = append(jobs, Job{
+					ano:  ano,
+					mes:  mes,
+					url:  url,
+					file: output,
+					dest: dest,
+				})
 			}
-		}()
-
-		path := filepath.Join(dest, f.Name)
-
-		// Check for ZipSlip (Directory traversal)
-		if !strings.HasPrefix(path, filepath.Clean(dest)+string(os.PathSeparator)) {
-			return fmt.Errorf("illegal file path: %s", path)
 		}
+	}
 
-		if f.FileInfo().IsDir() {
-			os.MkdirAll(path, f.Mode())
-		} else {
-			os.MkdirAll(filepath.Dir(path), f.Mode())
-			f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, f.Mode())
+	// número máximo de downloads simultâneos
+	const maxWorkers = 12
+	sem := make(chan struct{}, maxWorkers)
+	var wg sync.WaitGroup
+
+	for _, job := range jobs {
+		wg.Add(1)
+		go func(job Job) {
+			defer wg.Done()
+
+			// limita concorrência
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			err := downloadFile(job.url, job.file)
 			if err != nil {
-				return err
+				fmt.Println("Erro download:", err)
+				return
 			}
-			defer func() {
-				if err := f.Close(); err != nil {
-					panic(err)
-				}
-			}()
 
-			_, err = io.Copy(f, rc)
+			err = unzip(job.file, job.dest)
 			if err != nil {
-				return err
+				fmt.Println("Erro unzip:", err)
+				return
 			}
-		}
-		return nil
+			fmt.Printf("Arquivo %s descompactado em: %s\n", job.file, job.dest)
+
+			if err := os.Remove(job.file); err != nil {
+				fmt.Printf("Erro ao excluir o arquivo %s: %v\n", job.file, err)
+			} else {
+				fmt.Printf("Arquivo %s excluído com sucesso.\n", job.file)
+			}
+
+		}(job)
 	}
 
-	for _, f := range r.File {
-		err := extractAndWriteFile(f)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	wg.Wait()
+	fmt.Println("Todos os downloads concluídos.")
 }
