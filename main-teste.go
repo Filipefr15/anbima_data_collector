@@ -32,7 +32,7 @@ func parseDate(s string) time.Time {
 	return t
 }
 
-func main() {
+func mainnt() {
 	folder := "./inf_diario"
 	maxGoroutines := 20 // limite de goroutines simultâneas
 	semaphore := make(chan struct{}, maxGoroutines)
