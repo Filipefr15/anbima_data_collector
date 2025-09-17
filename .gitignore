@@ -29,6 +29,7 @@ go.work.sum
 
 lamina
 inf_diario
+inf_diario_ultimos_dias
 
 # Editor/IDE
 # .idea/
