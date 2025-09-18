@@ -30,6 +30,11 @@ go.work.sum
 lamina
 inf_diario
 inf_diario_ultimos_dias
+fidc
+fidc_info_importante
+fidcs_importantes_consolidados
+lamina_consolidado
+lamina_final
 
 # Editor/IDE
 # .idea/
