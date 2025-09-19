@@ -12,6 +12,7 @@ type Job struct {
 	url  string
 	file string
 	dest string
+	aux  string
 }
 
 func runDownloads(anos []int, objetoBuscado []string) {
@@ -157,6 +158,7 @@ func runDownloadsFIP(anos []int, objetoBuscado []string) {
 				url:  url,
 				file: output,
 				dest: dest,
+				aux:  fmt.Sprintf("%s_%s_%d.csv", "inf_tri_quadri", objeto, ano),
 			})
 		}
 	}
@@ -188,7 +190,29 @@ func runDownloadsFIP(anos []int, objetoBuscado []string) {
 			// 	fmt.Println("Erro unzip:", err)
 			// 	return
 			// }
-			os.Mkdir(job.dest, 0755)
+
+			if _, err := os.Stat(job.dest); os.IsNotExist(err) {
+				err = os.MkdirAll(job.dest, 0755)
+				if err != nil {
+					fmt.Println("Erro ao criar diretório:", err)
+					return
+				}
+			}
+
+			err = os.Rename(job.file, fmt.Sprintf("%s/%s", job.dest, job.aux))
+			if err != nil {
+				fmt.Println("Erro ao mover arquivo:", err)
+				return
+			}
+
+			// err = os.Rename(fmt.Sprintf("%s/%s", job.dest, job.file), job.aux)
+			// if err != nil {
+			// 	fmt.Println("Erro ao mover arquivo:", err)
+			// 	return
+			// }
+			// os.MkdirAll(job.dest, 0755)
+
+			// os.Mkdir(job.dest, 0755)
 			fmt.Printf("Arquivo %s descompactado em: %s\n", job.file, job.dest)
 
 			// if err := os.Remove(job.file); err != nil {

@@ -60,6 +60,13 @@ func main() {
 			fmt.Println("Lâminas organizadas com sucesso.")
 			mashLaminas([]int{2021, 2022, 2023, 2024, 2025}, []string{"_", "_carteira_", "_rentab_ano_", "_rentab_mes_"})
 			fmt.Println("Lâminas consolidadas com sucesso.")
+		case 8:
+			organizeFIPs([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
+			fmt.Println("FIP's organizados com sucesso.")
+			mashFIPs([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
+			fmt.Println("FIP's consolidados com sucesso.")
+		case 9:
+			startServer2()
 		case 0:
 			fmt.Println("Saindo...")
 			return
@@ -106,6 +113,18 @@ func startServer() {
 	http.HandleFunc("/searchInfo", searchInfoHandler)
 	http.HandleFunc("/searchFIDC", searchFIDCHandler)
 	http.HandleFunc("/searchLamina", searchLaminaHandler)
+	fmt.Println("Servidor iniciado em :8080")
+	http.ListenAndServe(":8080", nil)
+}
+
+func startServer2() {
+	err := loadFipCache()
+	if err != nil {
+		fmt.Println("Erro ao carregar cache FIDC:", err)
+		return
+	}
+
+	http.HandleFunc("/searchFip", searchFipHandler)
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
 }
