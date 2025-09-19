@@ -259,7 +259,7 @@ func organizeFIDCInfMensal(anos []int) error {
 				fmt.Println("FIDC desconhecido:", fidc)
 			}
 
-			outFileName := fmt.Sprintf("fidc_info_importante/fidc_mensal_%d%s.csv", ano, fidc)
+			outFileName := fmt.Sprintf("fidc_mensal_anualizado/fidc_mensal_%d%s.csv", ano, fidc)
 			outFile, err := os.Create(outFileName)
 			if err != nil {
 				return err
@@ -282,7 +282,7 @@ func mashFIDCs(anos []int) error {
 		var merged dataframe.DataFrame
 		first := true
 		for _, ano := range anos {
-			arquivo := fmt.Sprintf("fidc_info_importante/fidc_mensal_%d%s.csv", ano, fidc)
+			arquivo := fmt.Sprintf("fidc_mensal_anualizado/fidc_mensal_%d%s.csv", ano, fidc)
 			if _, err := os.Stat(arquivo); err != nil {
 				continue
 			}
@@ -306,7 +306,7 @@ func mashFIDCs(anos []int) error {
 			continue
 		}
 
-		outFileName := fmt.Sprintf("fidcs_importantes_consolidados/fidc_consolidado%s.csv", fidc)
+		outFileName := fmt.Sprintf("fidcs_anualizados_juntados/fidc_consolidado%s.csv", fidc)
 		outFile, err := os.Create(outFileName)
 		if err != nil {
 			return err
@@ -326,7 +326,7 @@ func mashFIDCsIntoOne(fidcs []string) error {
 	joined := make(map[string]map[string]string)
 
 	for _, fidc := range fidcs {
-		file := fmt.Sprintf("fidcs_importantes_consolidados/fidc_consolidado%s.csv", fidc)
+		file := fmt.Sprintf("fidcs_anualizados_juntados/fidc_consolidado%s.csv", fidc)
 		f, err := os.Open(file)
 		if err != nil {
 			return fmt.Errorf("erro abrindo %s: %w", file, err)
@@ -362,7 +362,7 @@ func mashFIDCsIntoOne(fidcs []string) error {
 	}
 
 	// montar CSV de saída
-	out, err := os.Create("fidcs_importantes_consolidados/fidc_consolidado_FINAL.csv")
+	out, err := os.Create("fidcs_anualizados_juntados/fidc_consolidado_FINAL.csv")
 	if err != nil {
 		return err
 	}

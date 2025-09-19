@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -91,6 +92,7 @@ func searchInfoHandler(w http.ResponseWriter, r *http.Request) {
 
 	year := r.URL.Query().Get("year")
 	month := r.URL.Query().Get("month")
+	isLatest := r.URL.Query().Get("isLatest") == "true"
 
 	normCNPJ := normalizeCNPJ(strings.TrimSpace(cnpj))
 
@@ -108,6 +110,21 @@ func searchInfoHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		results = append(results, info)
+	}
+	if isLatest && len(results) > 0 {
+		maxDate := results[0].Data
+		for _, info := range results[1:] {
+			if info.Data > maxDate {
+				maxDate = info.Data
+			}
+		}
+		var filtered []InfoDiario
+		for _, info := range results {
+			if info.Data == maxDate {
+				filtered = append(filtered, info)
+			}
+		}
+		results = filtered
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -170,7 +187,7 @@ func loadFIDCCache() error {
 	fidcRENTCache = make(map[string][]InfoFIDCRENT)
 
 	// PL
-	filePL := "fidcs_importantes_consolidados/fidc_consolidado_IV_.csv"
+	filePL := "fidcs_anualizados_juntados/fidc_consolidado_IV_.csv"
 	fPL, err := os.Open(filePL)
 	if err == nil {
 		reader := csv.NewReader(fPL)
@@ -197,7 +214,7 @@ func loadFIDCCache() error {
 	}
 
 	// COTISTAS
-	fileCOTISTAS := "fidcs_importantes_consolidados/fidc_consolidado_X_1_.csv"
+	fileCOTISTAS := "fidcs_anualizados_juntados/fidc_consolidado_X_1_.csv"
 	fCOTISTAS, err := os.Open(fileCOTISTAS)
 	if err == nil {
 		reader := csv.NewReader(fCOTISTAS)
@@ -224,7 +241,7 @@ func loadFIDCCache() error {
 	}
 
 	// COTA
-	fileCOTA := "fidcs_importantes_consolidados/fidc_consolidado_X_2_.csv"
+	fileCOTA := "fidcs_anualizados_juntados/fidc_consolidado_X_2_.csv"
 	fCOTA, err := os.Open(fileCOTA)
 	if err == nil {
 		reader := csv.NewReader(fCOTA)
@@ -252,7 +269,7 @@ func loadFIDCCache() error {
 	}
 
 	// RENT
-	fileRENT := "fidcs_importantes_consolidados/fidc_consolidado_X_3_.csv"
+	fileRENT := "fidcs_anualizados_juntados/fidc_consolidado_X_3_.csv"
 	fRENT, err := os.Open(fileRENT)
 	if err == nil {
 		reader := csv.NewReader(fRENT)
@@ -294,6 +311,7 @@ func searchFIDCHandler(w http.ResponseWriter, r *http.Request) {
 	year := r.URL.Query().Get("year")
 	month := r.URL.Query().Get("month")
 	table := r.URL.Query().Get("table") // "PL", "COTISTAS", "COTA", "RENT" ou vazio para todas
+	isLatest := r.URL.Query().Get("isLatest") == "true"
 
 	normCNPJ := normalizeCNPJ(strings.TrimSpace(cnpj))
 
@@ -311,6 +329,21 @@ func searchFIDCHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []InfoFIDCPL
+			for _, info := range results {
+				if info.Data == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
 		}
 		if table == "PL" {
 			fidcCacheMutex.RUnlock()
@@ -336,6 +369,25 @@ func searchFIDCHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			results = append(results, info)
 		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []InfoFIDCCOTISTAS
+			for _, info := range results {
+				numCotstInt, err := strconv.Atoi(info.NumCotst)
+				if err != nil {
+					continue
+				}
+				if info.Data == maxDate && numCotstInt > 0 {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
 		if table == "COTISTAS" {
 			fidcCacheMutex.RUnlock()
 			w.Header().Set("Content-Type", "application/json")
@@ -360,6 +412,29 @@ func searchFIDCHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			results = append(results, info)
 		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []InfoFIDCCOTA
+			for _, info := range results {
+				qtCotaFloat, err := strconv.ParseFloat(info.QtCota, 64)
+				if err != nil {
+					continue
+				}
+				vlCotaFloat, err := strconv.ParseFloat(info.VlCota, 64)
+				if err != nil {
+					continue
+				}
+				if info.Data == maxDate && qtCotaFloat > 0 && vlCotaFloat > 0 {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
 		if table == "COTA" {
 			fidcCacheMutex.RUnlock()
 			w.Header().Set("Content-Type", "application/json")
@@ -383,6 +458,25 @@ func searchFIDCHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []InfoFIDCRENT
+			for _, info := range results {
+				rentFloat, err := strconv.ParseFloat(info.VlRentabMes, 64)
+				if err != nil {
+					continue
+				}
+				if info.Data == maxDate && rentFloat != 0.000000 {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
 		}
 		if table == "RENT" {
 			fidcCacheMutex.RUnlock()
@@ -539,7 +633,7 @@ func loadLaminaCache() error {
 	laminaRentabMesCache = make(map[string][]LaminaRentabMesInfo)
 
 	// lamina_final_.csv
-	if f, err := os.Open("lamina_final_.csv"); err == nil {
+	if f, err := os.Open("lamina_final/lamina_final_.csv"); err == nil {
 		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
@@ -561,7 +655,7 @@ func loadLaminaCache() error {
 	}
 
 	// lamina_final_carteira_.csv
-	if f, err := os.Open("lamina_final_carteira_.csv"); err == nil {
+	if f, err := os.Open("lamina_final/lamina_final_carteira_.csv"); err == nil {
 		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
@@ -583,7 +677,7 @@ func loadLaminaCache() error {
 	}
 
 	// lamina_final_rentab_ano_.csv
-	if f, err := os.Open("lamina_final_rentab_ano_.csv"); err == nil {
+	if f, err := os.Open("lamina_final/lamina_final_rentab_ano_.csv"); err == nil {
 		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
@@ -605,7 +699,7 @@ func loadLaminaCache() error {
 	}
 
 	// lamina_final_rentab_mes_.csv
-	if f, err := os.Open("lamina_final_rentab_mes_.csv"); err == nil {
+	if f, err := os.Open("lamina_final/lamina_final_rentab_mes_.csv"); err == nil {
 		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
@@ -642,10 +736,9 @@ func searchLaminaHandler(w http.ResponseWriter, r *http.Request) {
 	table := r.URL.Query().Get("table") // "LAMINA", "CARTEIRA", "RENTAB_ANO", "RENTAB_MES" ou vazio para todas
 	year := r.URL.Query().Get("year")
 	month := r.URL.Query().Get("month")
+	isLatest := r.URL.Query().Get("isLatest") == "true"
 
-	normCNPJ := strings.ReplaceAll(cnpj, ".", "")
-	normCNPJ = strings.ReplaceAll(normCNPJ, "-", "")
-	normCNPJ = strings.ReplaceAll(normCNPJ, "/", "")
+	normCNPJ := normalizeCNPJ(strings.TrimSpace(cnpj))
 
 	laminaCacheMutex.RLock()
 	loaded := laminaCacheLoaded
@@ -661,6 +754,21 @@ func searchLaminaHandler(w http.ResponseWriter, r *http.Request) {
 				continue
 			}
 			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []LaminaInfo
+			for _, info := range results {
+				if info.Data == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
 		}
 		if table == "LAMINA" {
 			laminaCacheMutex.RUnlock()
@@ -686,6 +794,21 @@ func searchLaminaHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			results = append(results, info)
 		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []LaminaCarteiraInfo
+			for _, info := range results {
+				if info.Data == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
 		if table == "CARTEIRA" {
 			laminaCacheMutex.RUnlock()
 			w.Header().Set("Content-Type", "application/json")
@@ -702,13 +825,28 @@ func searchLaminaHandler(w http.ResponseWriter, r *http.Request) {
 	if table == "RENTAB_ANO" || table == "" {
 		var results []LaminaRentabAnoInfo
 		for _, info := range laminaRentabAnoCache[normCNPJ] {
-			if year != "" && (len(info.Data) < 4 || info.Data[:4] != year) {
+			if year != "" && info.AnoRentab != year {
 				continue
 			}
 			if month != "" && (len(info.Data) < 7 || info.Data[5:7] != month) {
 				continue
 			}
 			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []LaminaRentabAnoInfo
+			for _, info := range results {
+				if info.Data == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
 		}
 		if table == "RENTAB_ANO" {
 			laminaCacheMutex.RUnlock()
@@ -729,10 +867,27 @@ func searchLaminaHandler(w http.ResponseWriter, r *http.Request) {
 			if year != "" && (len(info.Data) < 4 || info.Data[:4] != year) {
 				continue
 			}
-			if month != "" && (len(info.Data) < 7 || info.Data[5:7] != month) {
+			mesRentabInt, _ := strconv.Atoi(info.MesRentab)
+			monthInt, _ := strconv.Atoi(month)
+			if month != "" && mesRentabInt != monthInt {
 				continue
 			}
 			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].Data
+			for _, info := range results[1:] {
+				if info.Data > maxDate {
+					maxDate = info.Data
+				}
+			}
+			var filtered []LaminaRentabMesInfo
+			for _, info := range results {
+				if info.Data == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
 		}
 		if table == "RENTAB_MES" {
 			laminaCacheMutex.RUnlock()

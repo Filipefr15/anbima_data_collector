@@ -24,7 +24,12 @@ func main() {
 	for {
 		switch escolha {
 		case 1:
-			runDownloads([]int{2021, 2022, 2023, 2024, 2025})
+			// runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
+			// fmt.Println("Informes diários baixados com sucesso.")
+			// runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
+			// fmt.Println("Lâminas baixadas com sucesso.")
+			runDownloadsFIP([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
+			fmt.Println("FIP's baixados com sucesso.")
 		case 2:
 			// err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024})
 			err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024, 2025})
@@ -34,7 +39,8 @@ func main() {
 		case 3:
 			startServer()
 		case 4:
-			runDownloadsFIDC([]int{2021, 2022, 2023, 2024, 2025})
+			runDownloadsFIDC([]int{2021, 2022, 2023, 2024, 2025}, []string{"fidc"})
+			fmt.Println("FIDC's baixados com sucesso.")
 		case 5:
 			err := organizeFIDCInfMensal([]int{2021, 2022, 2023, 2024, 2025})
 			if err != nil {
