@@ -24,12 +24,11 @@ func main() {
 	for {
 		switch escolha {
 		case 1:
-			// runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
-			// fmt.Println("Informes diários baixados com sucesso.")
-			// runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
-			// fmt.Println("Lâminas baixadas com sucesso.")
-			runDownloadsFIP([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
-			fmt.Println("FIP's baixados com sucesso.")
+			runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
+			fmt.Println("Informes diários baixados com sucesso.")
+			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
+			fmt.Println("Lâminas baixadas com sucesso.")
+
 		case 2:
 			// err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024})
 			err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024, 2025})
@@ -61,6 +60,8 @@ func main() {
 			mashLaminas([]int{2021, 2022, 2023, 2024, 2025}, []string{"_", "_carteira_", "_rentab_ano_", "_rentab_mes_"})
 			fmt.Println("Lâminas consolidadas com sucesso.")
 		case 8:
+			runDownloadsFIP([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
+			fmt.Println("FIP's baixados com sucesso.")
 			organizeFIPs([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
 			fmt.Println("FIP's organizados com sucesso.")
 			mashFIPs([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
