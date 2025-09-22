@@ -68,6 +68,20 @@ func main() {
 			fmt.Println("FIP's consolidados com sucesso.")
 		case 9:
 			startServer2()
+		case 10:
+			downloadCsvDescompactado([]string{"adm_fii"}, "cad")
+			fmt.Println("Cadastro de administradores de FII baixados com sucesso.")
+			simpleCsvPadronization([]string{"adm_fii"}, []string{""}, "cad", "")
+			fmt.Println("Cadastro de administradores de FII padronizados com sucesso.")
+		case 11:
+			downloadCsvDescompactado([]string{"fi"}, "cad")
+			fmt.Println("Cadastro de informações de fundos baixados com sucesso.")
+			simpleCsvPadronization([]string{"fi"}, []string{""}, "cad", "")
+			fmt.Println("Cadastro de informações de fundos padronizados com sucesso.")
+		case 12:
+			downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
+			fmt.Println("Cadastro de informações de fundos (registro_fundo_classe) baixados com sucesso.")
+			simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
 		case 0:
 			fmt.Println("Saindo...")
 			return
