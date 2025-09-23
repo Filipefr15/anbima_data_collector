@@ -825,6 +825,325 @@ func mashFIPs(anos []int, tabs []string) error {
 	return nil
 }
 
+func fidcTeste(anos []int, tabs []string) error {
+	//fidc_tabs := []string{"_IV_", "_X_1_", "_X_2_", "_X_3_"}
+
+	for _, tab := range tabs {
+		for _, ano := range anos {
+			var merged dataframe.DataFrame
+			first := true
+
+			dfCh := make(chan dataframe.DataFrame)
+			var wg sync.WaitGroup
+
+			for mes := 1; mes <= 12; mes++ {
+				arquivo := fmt.Sprintf("fidc/inf_mensal_fidc_tab%s%d%02d.csv", tab, ano, mes)
+				if _, err := os.Stat(arquivo); err != nil {
+					continue
+				}
+
+				wg.Add(1)
+				go func(arquivo string) {
+					defer wg.Done()
+
+					f, err := os.Open(arquivo)
+					if err != nil {
+						fmt.Printf("Erro ao abrir arquivo %s: %v\n", arquivo, err)
+						return
+					}
+					defer f.Close()
+
+					reader := transform.NewReader(f, charmap.ISO8859_1.NewDecoder())
+					r := csv.NewReader(reader)
+					r.Comma = ';'
+					r.LazyQuotes = true
+
+					var records [][]string
+					var header []string
+
+					for {
+						row, err := r.Read()
+						if err != nil {
+							if err == io.EOF {
+								break
+							}
+							fmt.Printf("Erro ao ler linha em %s: %v\n", arquivo, err)
+							break
+						}
+
+						// Limpa aspas soltas
+						for i, val := range row {
+							row[i] = strings.TrimPrefix(val, `"`)
+							row[i] = strings.TrimSuffix(val, `"`)
+						}
+
+						if header == nil {
+							header = row
+							records = append(records, row)
+							continue
+						}
+
+						// Ajusta linhas com excesso de campos automaticamente
+						if len(row) != len(header) {
+							diff := len(row) - len(header)
+							if diff > 0 {
+								// Junta os campos extras no campo que provavelmente contém texto (como nome do fundo)
+								// Procuramos o primeiro campo que seja "não numérico" como candidato
+								for i, val := range row {
+									if _, err := fmt.Sscanf(val, "%f", new(float64)); err != nil {
+										// Found candidate for merge
+										mergedVal := strings.Join(row[i:i+diff+1], ";")
+										newRow := append(row[:i], mergedVal)
+										if i+diff+1 < len(row) {
+											newRow = append(newRow, row[i+diff+1:]...)
+										}
+										row = newRow
+										break
+									}
+								}
+							}
+						}
+
+						// Ignora linhas que ainda não batem
+						if len(row) != len(header) {
+							fmt.Printf("Ignorando linha irrecuperável em %s: %v\n", arquivo, row)
+							continue
+						}
+
+						records = append(records, row)
+					}
+
+					if len(records) > 0 {
+						df := dataframe.LoadRecords(records)
+						dfCh <- df
+					}
+				}(arquivo)
+			}
+
+			// Fechar channel após todas as goroutines terminarem
+			go func() {
+				wg.Wait()
+				close(dfCh)
+			}()
+
+			// Coleta os dataframes e faz RBind
+			for df := range dfCh {
+				if first {
+					merged = df
+					first = false
+				} else {
+					merged = merged.RBind(df)
+				}
+			}
+
+			if merged.Nrow() == 0 {
+				fmt.Printf("Nenhum dado encontrado para o ano %d\n", ano)
+				continue
+			}
+			// Normaliza colunas
+			colMap := map[string]string{
+				"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+			}
+			for _, colName := range merged.Names() {
+				if newName, ok := colMap[colName]; ok && newName != colName {
+					merged = merged.Rename(newName, colName)
+				}
+			}
+			colExists := false
+			for _, colName := range merged.Names() {
+				if colName == "TP_FUNDO_CLASSE" {
+					colExists = true
+					break
+				}
+			}
+
+			if !colExists {
+				vals := make([]string, merged.Nrow())
+				for i := range vals {
+					vals[i] = "Não informado"
+				}
+				newCol := series.New(vals, series.String, "TP_FUNDO_CLASSE")
+				merged = merged.Mutate(newCol)
+			}
+
+			outFileName := fmt.Sprintf("fidc_mensal_anualizado/fidc_mensal_%d%s.csv", ano, tab)
+			outFile, err := os.Create(outFileName)
+			if err != nil {
+				return err
+			}
+			if err := merged.WriteCSV(outFile); err != nil {
+				return err
+			}
+			outFile.Close()
+			fmt.Printf("Arquivo %s gerado com sucesso!\n", outFileName)
+		}
+	}
+
+	return nil
+}
+
+// prefix para fidc => fidc
+func csvPadronization(tabs []string, auxs, meses []int, cadOuDoc, prefix string) error {
+	for _, tab := range tabs {
+		for _, aux := range auxs {
+			var merged dataframe.DataFrame
+			first := true
+
+			dfCh := make(chan dataframe.DataFrame)
+			var wg sync.WaitGroup
+
+			for _, mes := range meses {
+				arquivo := fmt.Sprintf("fidc/inf_mensal_fidc_tab%s%d%02d.csv", tab, aux, mes)
+				if _, err := os.Stat(arquivo); err != nil {
+					continue
+				}
+				wg.Add(1)
+				go func(arquivo string) {
+					defer wg.Done()
+
+					f, err := os.Open(arquivo)
+					if err != nil {
+						fmt.Printf("Erro ao abrir arquivo %s: %v\n", arquivo, err)
+						return
+					}
+					defer f.Close()
+
+					reader := transform.NewReader(f, charmap.ISO8859_1.NewDecoder())
+					scanner := bufio.NewScanner(reader)
+
+					var records [][]string
+					var header []string
+					lineNum := 0
+
+					for scanner.Scan() {
+						lineNum++
+						line := scanner.Text()
+
+						// Processa a linha como CSV
+						r := csv.NewReader(strings.NewReader(line))
+						r.Comma = ';'
+						r.LazyQuotes = true
+
+						row, err := r.Read()
+						if err != nil {
+							fmt.Printf("Erro ao ler linha %d em %s: %v\n", lineNum, arquivo, err)
+
+							// Tenta reparar a linha usando a função tryFixCsvLine
+							if header != nil { // só tenta reparar se já temos o header
+								fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+								if fixedRow != nil {
+									records = append(records, fixedRow)
+									continue
+								}
+							}
+							// Se não conseguiu reparar, pula esta linha
+							fmt.Printf("Pulando linha %d irrecuperável\n", lineNum)
+							continue
+						}
+
+						// Limpa aspas soltas
+						for i, val := range row {
+							row[i] = strings.TrimPrefix(val, `"`)
+							row[i] = strings.TrimSuffix(val, `"`)
+						}
+
+						if header == nil {
+							header = row
+							standardizeHeaders(header)
+							records = append(records, row)
+							continue
+						}
+
+						// Ajusta linhas com excesso de campos automaticamente
+						if len(row) != len(header) {
+							fmt.Printf("Linha %d tem %d campos, header tem %d campos\n", lineNum, len(row), len(header))
+
+							// Tenta reparar usando tryFixCsvLine primeiro
+							fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+							if fixedRow != nil {
+								records = append(records, fixedRow)
+								continue
+							}
+
+							// Se tryFixCsvLine não funcionou, tenta o método automático
+							diff := len(row) - len(header)
+							if diff > 0 {
+								// Junta os campos extras no campo que provavelmente contém texto (como nome do fundo)
+								// Procuramos o primeiro campo que seja "não numérico" como candidato
+								for i, val := range row {
+									if _, err := fmt.Sscanf(val, "%f", new(float64)); err != nil {
+										// Found candidate for merge
+										mergedVal := strings.Join(row[i:i+diff+1], ";")
+										newRow := append(row[:i], mergedVal)
+										if i+diff+1 < len(row) {
+											newRow = append(newRow, row[i+diff+1:]...)
+										}
+										row = newRow
+										break
+									}
+								}
+							}
+						}
+
+						// Ignora linhas que ainda não batem
+						if len(row) != len(header) {
+							fmt.Printf("Ignorando linha irrecuperável %d em %s: %v\n", lineNum, arquivo, row)
+							continue
+						}
+
+						records = append(records, row)
+					}
+
+					if err := scanner.Err(); err != nil {
+						fmt.Printf("Erro ao escanear arquivo %s: %v\n", arquivo, err)
+					}
+
+					if len(records) > 0 {
+						df := dataframe.LoadRecords(records)
+
+						dfCh <- df
+					}
+				}(arquivo)
+			}
+
+			// Fechar channel após todas as goroutines terminarem
+			go func() {
+				wg.Wait()
+				close(dfCh)
+			}()
+
+			// Coleta os dataframes e faz RBind
+			for df := range dfCh {
+				if first {
+					merged = df
+					first = false
+				} else {
+					merged = merged.RBind(df)
+				}
+			}
+
+			if merged.Nrow() == 0 {
+				fmt.Printf("Nenhum dado encontrado para %s no ano %d\n", tab, aux)
+				continue
+			}
+			os.MkdirAll(fmt.Sprintf("%s_padronized", prefix), os.ModePerm)
+
+			outFileName := fmt.Sprintf("%s_padronized/fidc_mensal_%d%s.csv", prefix, aux, tab)
+			outFile, err := os.Create(outFileName)
+			if err != nil {
+				return err
+			}
+			if err := merged.WriteCSV(outFile); err != nil {
+				return err
+			}
+			outFile.Close()
+			fmt.Printf("Arquivo %s gerado com sucesso!\n", outFileName)
+		}
+	}
+
+	return nil
+}
+
 // tab := []string{"adm_fii"} cadOuDoc := "cad"
 // padroniza os CSV simples, que precisam apenas de padronização de colunas
 // e verificação de colunas
@@ -863,56 +1182,37 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 				defer f.Close()
 
 				reader := transform.NewReader(f, charmap.ISO8859_1.NewDecoder())
-				r := csv.NewReader(reader)
-				r.Comma = ';'
-				r.LazyQuotes = true
+				scanner := bufio.NewScanner(reader)
 
 				var records [][]string
 				var header []string
+				lineNum := 0
 
-				for {
+				for scanner.Scan() {
+					lineNum++
+					line := scanner.Text()
+
+					// Processa a linha como CSV
+					r := csv.NewReader(strings.NewReader(line))
+					r.Comma = ';'
+					r.LazyQuotes = true
+
 					row, err := r.Read()
-
 					if err != nil {
-						fmt.Println(row)
-						fmt.Println("passou")
-						fmt.Println("len row:", len(row))
-						fmt.Println("len header:", len(header))
-						tamanho_total := len(header) / len(row)
-						fmt.Println("Tamanho total:", tamanho_total)
-						// Tenta extrair o número da linha do erro
-						var lineNum int
-						msg := err.Error()
+						fmt.Printf("Erro ao ler linha %d em %s: %v\n", lineNum, arquivo, err)
 
-						_, scanErr := fmt.Sscanf(msg, "record on line %d:", &lineNum)
-						if scanErr == nil {
-							fmt.Printf("Número da linha com erro: %d\n", lineNum)
+						// Tenta reparar a linha usando a função tryFixCsvLine
+						if header != nil { // só tenta reparar se já temos o header
+							fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+							if fixedRow != nil {
+								records = append(records, fixedRow)
+								continue
+							}
 						}
-
-						if err == io.EOF {
-							break
-						}
-						fmt.Printf("Erro ao ler linha em %s: %v\n", arquivo, err)
-						break
+						// Se não conseguiu reparar, pula esta linha
+						fmt.Printf("Pulando linha %d irrecuperável\n", lineNum)
+						continue
 					}
-					// row, err := r.Read()
-					// if err != nil {
-					// 	if err == io.EOF {
-					// 		break
-					// 	}
-					// 	if strings.Contains(err.Error(), "wrong number of fields") {
-					// 		fmt.Printf("Erro ao ler linha em %s: %v\n", arquivo, err)
-					// 		// aqui chamamos a função de reparo
-					// 		fixedRow := tryFixCsvLine(arquivo, 258, len(header))
-					// 		if fixedRow != nil {
-					// 			records = append(records, fixedRow)
-					// 		}
-					// 		//continue
-					// 	} else {
-					// 		fmt.Printf("Erro inesperado em %s: %v\n", arquivo, err)
-					// 		break
-					// 	}
-					// }
 
 					// Limpa aspas soltas
 					for i, val := range row {
@@ -928,6 +1228,16 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 
 					// Ajusta linhas com excesso de campos automaticamente
 					if len(row) != len(header) {
+						fmt.Printf("Linha %d tem %d campos, header tem %d campos\n", lineNum, len(row), len(header))
+
+						// Tenta reparar usando tryFixCsvLine primeiro
+						fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+						if fixedRow != nil {
+							records = append(records, fixedRow)
+							continue
+						}
+
+						// Se tryFixCsvLine não funcionou, tenta o método automático
 						diff := len(row) - len(header)
 						if diff > 0 {
 							// Junta os campos extras no campo que provavelmente contém texto (como nome do fundo)
@@ -949,11 +1259,15 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 
 					// Ignora linhas que ainda não batem
 					if len(row) != len(header) {
-						fmt.Printf("Ignorando linha irrecuperável em %s: %v\n", arquivo, row)
+						fmt.Printf("Ignorando linha irrecuperável %d em %s: %v\n", lineNum, arquivo, row)
 						continue
 					}
 
 					records = append(records, row)
+				}
+
+				if err := scanner.Err(); err != nil {
+					fmt.Printf("Erro ao escanear arquivo %s: %v\n", arquivo, err)
 				}
 
 				if len(records) > 0 {
@@ -1024,7 +1338,7 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 	return nil
 }
 
-func tryFixCsvLine(filename string, lineNum int, expectedCols int) []string {
+func fixCsvLine(filename string, lineNum int, expectedCols int) []string {
 	f, err := os.Open(filename)
 	if err != nil {
 		fmt.Printf("Não consegui reabrir %s: %v\n", filename, err)
@@ -1049,12 +1363,8 @@ func tryFixCsvLine(filename string, lineNum int, expectedCols int) []string {
 		return nil
 	}
 
-	fmt.Println("Tentando reparar linha:", line)
-
 	line = strings.ReplaceAll(line, `;"`, ";")
 	line = strings.ReplaceAll(line, `";`, ";")
-
-	fmt.Println("Linha talvez reparada:", line)
 
 	// Agora tentamos reparar
 	r := csv.NewReader(strings.NewReader(line))
@@ -1083,7 +1393,6 @@ func tryFixCsvLine(filename string, lineNum int, expectedCols int) []string {
 	}
 
 	if len(row) != expectedCols {
-		fmt.Printf("Linha %d de %s não pôde ser reparada\n", lineNum, filename)
 		return nil
 	}
 
@@ -1093,4 +1402,32 @@ func tryFixCsvLine(filename string, lineNum int, expectedCols int) []string {
 
 	fmt.Printf("Linha %d de %s reparada com sucesso!\n", lineNum, filename)
 	return row
+}
+
+// Padroniza os headers e garante a existência da coluna TP_FUNDO_CLASSE
+// Padroniza colunas e garante a existência da coluna TP_FUNDO_CLASSE
+// Padroniza os headers e garante a existência da coluna TP_FUNDO_CLASSE
+func standardizeHeaders(header []string) []string {
+	colMap := map[string]string{
+		"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+		"TP_FUNDO":   "TP_FUNDO_CLASSE",
+	}
+	for i, col := range header {
+		if newName, ok := colMap[col]; ok && newName != col {
+			header[i] = newName
+		}
+	}
+	// Garante existência da coluna TP_FUNDO_CLASSE
+	hasTpFundoClasse := false
+	for _, col := range header {
+		if col == "TP_FUNDO_CLASSE" {
+			hasTpFundoClasse = true
+			break
+		}
+	}
+	if !hasTpFundoClasse {
+		header = append(header, "TP_FUNDO_CLASSE")
+		fmt.Println("Adicionada coluna TP_FUNDO_CLASSE", header)
+	}
+	return header
 }

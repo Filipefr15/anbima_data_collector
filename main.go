@@ -41,16 +41,17 @@ func main() {
 			runDownloadsFIDC([]int{2021, 2022, 2023, 2024, 2025}, []string{"fidc"})
 			fmt.Println("FIDC's baixados com sucesso.")
 		case 5:
-			err := organizeFIDCInfMensal([]int{2021, 2022, 2023, 2024, 2025})
-			if err != nil {
-				fmt.Println("Erro ao organizar inf_mensal FIDC:", err)
-			}
-			fmt.Println("FIDC's organizados com sucesso.")
-			err = mashFIDCs([]int{2021, 2022, 2023, 2024, 2025})
-			if err != nil {
-				fmt.Println("Erro ao organizar FIDC's importantes:", err)
-			}
-			fmt.Println("FIDC's importantes organizados com sucesso.")
+			csvPadronization([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"}, []int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, "", "fidc")
+			// err := organizeFIDCInfMensal([]int{2021, 2022, 2023, 2024, 2025})
+			// if err != nil {
+			// 	fmt.Println("Erro ao organizar inf_mensal FIDC:", err)
+			// }
+			// fmt.Println("FIDC's organizados com sucesso.")
+			// err = mashFIDCs([]int{2021, 2022, 2023, 2024, 2025})
+			// if err != nil {
+			// 	fmt.Println("Erro ao organizar FIDC's importantes:", err)
+			// }
+			// fmt.Println("FIDC's importantes organizados com sucesso.")
 		case 6:
 			mashFIDCsIntoOne([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"})
 			fmt.Println("FIDC's consolidados com sucesso.")
@@ -79,10 +80,10 @@ func main() {
 			simpleCsvPadronization([]string{"fi"}, []string{""}, "cad", "")
 			fmt.Println("Cadastro de informações de fundos padronizados com sucesso.")
 		case 12:
-			//downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
+			downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
 			fmt.Println("Cadastro de informações de fundos (registro_fundo_classe) baixados com sucesso.")
-			simpleCsvPadronization([]string{"fi"}, []string{"classe"}, "cad", "registro")
-			// simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
+			//simpleCsvPadronization([]string{"fi"}, []string{"classe"}, "cad", "registro")
+			simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
 		case 0:
 			fmt.Println("Saindo...")
 			return
