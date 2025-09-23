@@ -79,9 +79,10 @@ func main() {
 			simpleCsvPadronization([]string{"fi"}, []string{""}, "cad", "")
 			fmt.Println("Cadastro de informações de fundos padronizados com sucesso.")
 		case 12:
-			downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
+			//downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
 			fmt.Println("Cadastro de informações de fundos (registro_fundo_classe) baixados com sucesso.")
-			simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
+			simpleCsvPadronization([]string{"fi"}, []string{"classe"}, "cad", "registro")
+			// simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
 		case 0:
 			fmt.Println("Saindo...")
 			return
@@ -126,6 +127,7 @@ func startServer() {
 	}
 
 	http.HandleFunc("/searchInfo", searchInfoHandler)
+	fmt.Println("search info carregado")
 	http.HandleFunc("/searchFIDC", searchFIDCHandler)
 	http.HandleFunc("/searchLamina", searchLaminaHandler)
 	fmt.Println("Servidor iniciado em :8080")

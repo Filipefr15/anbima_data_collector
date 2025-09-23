@@ -872,7 +872,23 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 
 				for {
 					row, err := r.Read()
+
 					if err != nil {
+						fmt.Println(row)
+						fmt.Println("passou")
+						fmt.Println("len row:", len(row))
+						fmt.Println("len header:", len(header))
+						tamanho_total := len(header) / len(row)
+						fmt.Println("Tamanho total:", tamanho_total)
+						// Tenta extrair o número da linha do erro
+						var lineNum int
+						msg := err.Error()
+
+						_, scanErr := fmt.Sscanf(msg, "record on line %d:", &lineNum)
+						if scanErr == nil {
+							fmt.Printf("Número da linha com erro: %d\n", lineNum)
+						}
+
 						if err == io.EOF {
 							break
 						}
