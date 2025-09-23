@@ -997,6 +997,7 @@ func csvPadronization(tabs []string, auxs, meses []int, cadOuDoc, prefix string)
 				if _, err := os.Stat(arquivo); err != nil {
 					continue
 				}
+
 				wg.Add(1)
 				go func(arquivo string) {
 					defer wg.Done()
