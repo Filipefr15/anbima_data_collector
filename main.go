@@ -12,7 +12,8 @@ func main() {
 	fmt.Println("3 - Ligar pesquisa de info de fundos na porta 8080")
 	fmt.Println("4 - Iniciar downloads e descompactação FIDC")
 	fmt.Println("5 - Organizaar FIDC's")
-	fmt.Print("Digite 1, 2, 3, 4 ou 5: ")
+	fmt.Println("6 - Organizar inf_diario com goroutines (versão melhorada)")
+	fmt.Print("Digite 1, 2, 3, 4, 5 ou 6: ")
 
 	var escolha int
 	_, err := fmt.Scan(&escolha)
@@ -24,8 +25,8 @@ func main() {
 	for {
 		switch escolha {
 		case 1:
-			runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
-			fmt.Println("Informes diários baixados com sucesso.")
+			// runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
+			// fmt.Println("Informes diários baixados com sucesso.")
 			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
 			fmt.Println("Lâminas baixadas com sucesso.")
 
@@ -41,20 +42,46 @@ func main() {
 			runDownloadsFIDC([]int{2021, 2022, 2023, 2024, 2025}, []string{"fidc"})
 			fmt.Println("FIDC's baixados com sucesso.")
 		case 5:
-			csvPadronization([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"}, []int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}, "", "fidc")
+			csvPadronizationFidc([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"},
+				[]int{2021, 2022, 2023, 2024, 2025},
+				[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+				"fidc",
+				map[string]string{
+					"TP_FUNDO_CLASSE": "Não informado",
+				},
+				map[string]string{
+					"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+					"TP_FUNDO":   "TP_FUNDO_CLASSE",
+				})
 			// err := organizeFIDCInfMensal([]int{2021, 2022, 2023, 2024, 2025})
 			// if err != nil {
 			// 	fmt.Println("Erro ao organizar inf_mensal FIDC:", err)
 			// }
 			// fmt.Println("FIDC's organizados com sucesso.")
-			// err = mashFIDCs([]int{2021, 2022, 2023, 2024, 2025})
-			// if err != nil {
-			// 	fmt.Println("Erro ao organizar FIDC's importantes:", err)
-			// }
-			// fmt.Println("FIDC's importantes organizados com sucesso.")
+			err = mashFIDCs([]int{2021, 2022, 2023, 2024, 2025})
+			if err != nil {
+				fmt.Println("Erro ao organizar FIDC's importantes:", err)
+			}
+			fmt.Println("FIDC's importantes organizados com sucesso.")
 		case 6:
-			mashFIDCsIntoOne([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"})
-			fmt.Println("FIDC's consolidados com sucesso.")
+			err := csvPadronizationLamina(
+				[]string{"_", "_carteira_", "_rentab_ano_", "_rentab_mes_"},
+				[]int{2021, 2022, 2023, 2024, 2025},
+				[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
+				"lamina",
+				map[string]string{
+					"TP_FUNDO_CLASSE": "Não informado",
+					"ID_SUBCLASSE":    "",
+				},
+				map[string]string{
+					"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+					"TP_FUNDO":   "TP_FUNDO_CLASSE",
+				},
+			)
+			if err != nil {
+				fmt.Println("Erro ao organizar inf_diario (versão melhorada):", err)
+			}
+			fmt.Println("Inf_diario organizado com sucesso (versão melhorada)!")
 		case 7:
 			organizeLaminas([]int{2021, 2022, 2023, 2024, 2025}, []string{"_", "_carteira_", "_rentab_ano_", "_rentab_mes_"})
 			fmt.Println("Lâminas organizadas com sucesso.")
