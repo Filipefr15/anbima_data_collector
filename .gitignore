@@ -28,13 +28,12 @@ go.work.sum
 .env
 
 lamina
+lamina_padronized
 inf_diario
 inf_diario_ultimos_dias
 fidc
 fidc_mensal_anualizado
 fidcs_anualizados_juntados
-lamina_consolidado
-lamina_final
 fip
 fip_final
 adm_fii
@@ -42,7 +41,6 @@ adm_fii_padronized
 fi
 fi_padronized
 fidc_padronized
-lamina_padronized
 
 # Editor/IDE
 # .idea/
