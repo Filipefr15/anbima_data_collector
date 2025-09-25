@@ -68,15 +68,15 @@ func main() {
 				[]string{"_", "_carteira_", "_rentab_ano_", "_rentab_mes_"},
 				[]int{2021, 2022, 2023, 2024, 2025},
 				[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-				"lamina",
-				map[string]string{
-					"TP_FUNDO_CLASSE": "Não informado",
-					"ID_SUBCLASSE":    "",
-				},
-				map[string]string{
-					"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
-					"TP_FUNDO":   "TP_FUNDO_CLASSE",
-				},
+				// "lamina",
+				// map[string]string{
+				// 	"TP_FUNDO_CLASSE": "Não informado",
+				// 	"ID_SUBCLASSE":    "",
+				// },
+				// map[string]string{
+				// 	"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+				// 	"TP_FUNDO":   "TP_FUNDO_CLASSE",
+				// },
 			)
 			if err != nil {
 				fmt.Println("Erro ao organizar inf_diario (versão melhorada):", err)
@@ -136,19 +136,19 @@ func main() {
 }
 
 func startServer() {
-	err := loadInfoDiarioCache()
-	if err != nil {
-		fmt.Println("Erro ao carregar cache:", err)
-		return
-	}
+	// err := loadInfoDiarioCache()
+	// if err != nil {
+	// 	fmt.Println("Erro ao carregar cache:", err)
+	// 	return
+	// }
 
-	err = loadFIDCCache()
-	if err != nil {
-		fmt.Println("Erro ao carregar cache FIDC:", err)
-		return
-	}
+	// err = loadFIDCCache()
+	// if err != nil {
+	// 	fmt.Println("Erro ao carregar cache FIDC:", err)
+	// 	return
+	// }
 
-	err = loadLaminaCache()
+	err := loadLaminaCache([]int{2020, 2021, 2022, 2023, 2024, 2025})
 	if err != nil {
 		fmt.Println("Erro ao carregar cache Lâminas:", err)
 		return
