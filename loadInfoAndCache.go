@@ -626,96 +626,112 @@ var laminaRentabMesCache map[string][]LaminaRentabMesInfo
 var laminaCacheLoaded bool
 var laminaCacheMutex sync.RWMutex
 
-func loadLaminaCache() error {
+func loadLaminaCache(anos []int) error {
 	laminaCache = make(map[string][]LaminaInfo)
 	laminaCarteiraCache = make(map[string][]LaminaCarteiraInfo)
 	laminaRentabAnoCache = make(map[string][]LaminaRentabAnoInfo)
 	laminaRentabMesCache = make(map[string][]LaminaRentabMesInfo)
 
 	// lamina_final_.csv
-	if f, err := os.Open("lamina_final/lamina_final_.csv"); err == nil {
-		reader := csv.NewReader(f)
-		reader.FieldsPerRecord = -1
-		records, err := reader.ReadAll()
-		f.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 77 {
-					continue
+	meses := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	for _, ano := range anos {
+		for _, mes := range meses {
+			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_%d%02d.csv", ano, mes)); err == nil {
+				reader := csv.NewReader(f)
+				reader.FieldsPerRecord = -1
+				records, err := reader.ReadAll()
+				f.Close()
+				if err == nil {
+					for i, row := range records {
+						if i == 0 || len(row) < 77 {
+							continue
+						}
+						info := LaminaInfo{
+							CNPJ: row[0], DenomSocial: row[1], Data: row[2], NmFantasia: row[3], EnderEletronico: row[4], PublicoAlvo: row[5], RestrInvest: row[6], Objetivo: row[7], PolitInvest: row[8], PrPLAtivoExterior: row[9], PrPLAtivoCredPriv: row[10], PrPLAlavanc: row[11], PrAtivoEmissor: row[12], DerivProtecaoCarteira: row[13], RiscoPerda: row[14], RiscoPerdaNegativo: row[15], PrPLAplicMaxFundoUnico: row[16], InvestInicialMin: row[17], InvestAdic: row[18], ResgateMin: row[19], HoraAplicResgate: row[20], VlMinPerman: row[21], QtDiaCaren: row[22], CondicCaren: row[23], ConversaoCotaCompra: row[24], QtDiaConversaoCotaCompra: row[25], ConversaoCotaCanc: row[26], QtDiaConversaoCotaResgate: row[27], TpDiaPagtoResgate: row[28], QtDiaPagtoResgate: row[29], TpTaxaAdm: row[30], TaxaAdm: row[31], TaxaAdmMin: row[32], TaxaAdmMax: row[33], TaxaAdmObs: row[34], TaxaEntr: row[35], CondicEntr: row[36], QtDiaSaida: row[37], TaxaSaida: row[38], CondicSaida: row[39], TaxaPerfm: row[40], PrPLDespesa: row[41], DtIniDespesa: row[42], DtFimDespesa: row[43], EnderEletronicoDespesa: row[44], VlPatrimLiq: row[45], ClasseRiscoAdmin: row[46], PrRentabFundo5Ano: row[47], IndiceRefer: row[48], PrVariacaoIndiceRefer5Ano: row[49], QtAnoPerda: row[50], DtIniAtiv5Ano: row[51], AnoSemRentab: row[52], CalcRentabFundoGatilho: row[53], PrVariacaoPerfm: row[54], CalcRentabFundo: row[55], RentabGatilho: row[56], DsRentabGatilho: row[57], AnoExemplo: row[58], AnoAnterExemplo: row[59], VlResgateExemplo: row[60], VlImpostoExemplo: row[61], VlTaxaEntrExemplo: row[62], VlTaxaSaidaExemplo: row[63], VlAjustePerfmExemplo: row[64], VlDespesaExemplo: row[65], VlDespesa3Ano: row[66], VlDespesa5Ano: row[67], VlRetorno3Ano: row[68], VlRetorno5Ano: row[69], RemunDistrib: row[70], DistribGestorUnico: row[71], ConflitoVenda: row[72], TelSAC: row[73], EnderEletronicoReclamacao: row[74], InfSAC: row[75], TpFundoClasse: row[76], IdSubclasse: row[77],
+						}
+						key := strings.ReplaceAll(row[0], ".", "")
+						key = strings.ReplaceAll(key, "-", "")
+						key = strings.ReplaceAll(key, "/", "")
+						laminaCache[key] = append(laminaCache[key], info)
+					}
 				}
-				info := LaminaInfo{
-					CNPJ: row[0], DenomSocial: row[1], Data: row[2], NmFantasia: row[3], EnderEletronico: row[4], PublicoAlvo: row[5], RestrInvest: row[6], Objetivo: row[7], PolitInvest: row[8], PrPLAtivoExterior: row[9], PrPLAtivoCredPriv: row[10], PrPLAlavanc: row[11], PrAtivoEmissor: row[12], DerivProtecaoCarteira: row[13], RiscoPerda: row[14], RiscoPerdaNegativo: row[15], PrPLAplicMaxFundoUnico: row[16], InvestInicialMin: row[17], InvestAdic: row[18], ResgateMin: row[19], HoraAplicResgate: row[20], VlMinPerman: row[21], QtDiaCaren: row[22], CondicCaren: row[23], ConversaoCotaCompra: row[24], QtDiaConversaoCotaCompra: row[25], ConversaoCotaCanc: row[26], QtDiaConversaoCotaResgate: row[27], TpDiaPagtoResgate: row[28], QtDiaPagtoResgate: row[29], TpTaxaAdm: row[30], TaxaAdm: row[31], TaxaAdmMin: row[32], TaxaAdmMax: row[33], TaxaAdmObs: row[34], TaxaEntr: row[35], CondicEntr: row[36], QtDiaSaida: row[37], TaxaSaida: row[38], CondicSaida: row[39], TaxaPerfm: row[40], PrPLDespesa: row[41], DtIniDespesa: row[42], DtFimDespesa: row[43], EnderEletronicoDespesa: row[44], VlPatrimLiq: row[45], ClasseRiscoAdmin: row[46], PrRentabFundo5Ano: row[47], IndiceRefer: row[48], PrVariacaoIndiceRefer5Ano: row[49], QtAnoPerda: row[50], DtIniAtiv5Ano: row[51], AnoSemRentab: row[52], CalcRentabFundoGatilho: row[53], PrVariacaoPerfm: row[54], CalcRentabFundo: row[55], RentabGatilho: row[56], DsRentabGatilho: row[57], AnoExemplo: row[58], AnoAnterExemplo: row[59], VlResgateExemplo: row[60], VlImpostoExemplo: row[61], VlTaxaEntrExemplo: row[62], VlTaxaSaidaExemplo: row[63], VlAjustePerfmExemplo: row[64], VlDespesaExemplo: row[65], VlDespesa3Ano: row[66], VlDespesa5Ano: row[67], VlRetorno3Ano: row[68], VlRetorno5Ano: row[69], RemunDistrib: row[70], DistribGestorUnico: row[71], ConflitoVenda: row[72], TelSAC: row[73], EnderEletronicoReclamacao: row[74], InfSAC: row[75], TpFundoClasse: row[76], IdSubclasse: row[77],
-				}
-				key := strings.ReplaceAll(row[0], ".", "")
-				key = strings.ReplaceAll(key, "-", "")
-				key = strings.ReplaceAll(key, "/", "")
-				laminaCache[key] = append(laminaCache[key], info)
 			}
 		}
 	}
 
 	// lamina_final_carteira_.csv
-	if f, err := os.Open("lamina_final/lamina_final_carteira_.csv"); err == nil {
-		reader := csv.NewReader(f)
-		reader.FieldsPerRecord = -1
-		records, err := reader.ReadAll()
-		f.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 7 {
-					continue
+	for _, ano := range anos {
+		for _, mes := range meses {
+			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_carteira_%d%02d.csv", ano, mes)); err == nil {
+				reader := csv.NewReader(f)
+				reader.FieldsPerRecord = -1
+				records, err := reader.ReadAll()
+				f.Close()
+				if err == nil {
+					for i, row := range records {
+						if i == 0 || len(row) < 7 {
+							continue
+						}
+						info := LaminaCarteiraInfo{
+							CNPJ: row[0], DenomSocial: row[1], Data: row[2], TpAtivo: row[3], PrPLAtivo: row[4], TpFundoClasse: row[5], IdSubclasse: row[6],
+						}
+						key := strings.ReplaceAll(row[0], ".", "")
+						key = strings.ReplaceAll(key, "-", "")
+						key = strings.ReplaceAll(key, "/", "")
+						laminaCarteiraCache[key] = append(laminaCarteiraCache[key], info)
+					}
 				}
-				info := LaminaCarteiraInfo{
-					CNPJ: row[0], DenomSocial: row[1], Data: row[2], TpAtivo: row[3], PrPLAtivo: row[4], TpFundoClasse: row[5], IdSubclasse: row[6],
-				}
-				key := strings.ReplaceAll(row[0], ".", "")
-				key = strings.ReplaceAll(key, "-", "")
-				key = strings.ReplaceAll(key, "/", "")
-				laminaCarteiraCache[key] = append(laminaCarteiraCache[key], info)
 			}
 		}
 	}
-
 	// lamina_final_rentab_ano_.csv
-	if f, err := os.Open("lamina_final/lamina_final_rentab_ano_.csv"); err == nil {
-		reader := csv.NewReader(f)
-		reader.FieldsPerRecord = -1
-		records, err := reader.ReadAll()
-		f.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 10 {
-					continue
+	for _, ano := range anos {
+		for _, mes := range meses {
+			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_rentab_ano_%d%02d.csv", ano, mes)); err == nil {
+				reader := csv.NewReader(f)
+				reader.FieldsPerRecord = -1
+				records, err := reader.ReadAll()
+				f.Close()
+				if err == nil {
+					for i, row := range records {
+						if i == 0 || len(row) < 10 {
+							continue
+						}
+						info := LaminaRentabAnoInfo{
+							CNPJ: row[0], DenomSocial: row[1], Data: row[2], AnoRentab: row[3], PrRentabAno: row[4], PrVariacaoIndiceReferAno: row[5], PrPerfmIndiceReferAno: row[6], RentabAnoObs: row[7], TpFundoClasse: row[8], IdSubclasse: row[9],
+						}
+						key := strings.ReplaceAll(row[0], ".", "")
+						key = strings.ReplaceAll(key, "-", "")
+						key = strings.ReplaceAll(key, "/", "")
+						laminaRentabAnoCache[key] = append(laminaRentabAnoCache[key], info)
+					}
 				}
-				info := LaminaRentabAnoInfo{
-					CNPJ: row[0], DenomSocial: row[1], Data: row[2], AnoRentab: row[3], PrRentabAno: row[4], PrVariacaoIndiceReferAno: row[5], PrPerfmIndiceReferAno: row[6], RentabAnoObs: row[7], TpFundoClasse: row[8], IdSubclasse: row[9],
-				}
-				key := strings.ReplaceAll(row[0], ".", "")
-				key = strings.ReplaceAll(key, "-", "")
-				key = strings.ReplaceAll(key, "/", "")
-				laminaRentabAnoCache[key] = append(laminaRentabAnoCache[key], info)
 			}
 		}
 	}
 
 	// lamina_final_rentab_mes_.csv
-	if f, err := os.Open("lamina_final/lamina_final_rentab_mes_.csv"); err == nil {
-		reader := csv.NewReader(f)
-		reader.FieldsPerRecord = -1
-		records, err := reader.ReadAll()
-		f.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 10 {
-					continue
+	for _, ano := range anos {
+		for _, mes := range meses {
+			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_rentab_mes_%d%02d.csv", ano, mes)); err == nil {
+				reader := csv.NewReader(f)
+				reader.FieldsPerRecord = -1
+				records, err := reader.ReadAll()
+				f.Close()
+				if err == nil {
+					for i, row := range records {
+						if i == 0 || len(row) < 10 {
+							continue
+						}
+						info := LaminaRentabMesInfo{
+							CNPJ: row[0], DenomSocial: row[1], Data: row[2], MesRentab: row[3], PrRentabMes: row[4], PrVariacaoIndiceReferMes: row[5], PrPerfmIndiceReferMes: row[6], RentabMesObs: row[7], TpFundoClasse: row[8], IdSubclasse: row[9],
+						}
+						key := strings.ReplaceAll(row[0], ".", "")
+						key = strings.ReplaceAll(key, "-", "")
+						key = strings.ReplaceAll(key, "/", "")
+						laminaRentabMesCache[key] = append(laminaRentabMesCache[key], info)
+					}
 				}
-				info := LaminaRentabMesInfo{
-					CNPJ: row[0], DenomSocial: row[1], Data: row[2], MesRentab: row[3], PrRentabMes: row[4], PrVariacaoIndiceReferMes: row[5], PrPerfmIndiceReferMes: row[6], RentabMesObs: row[7], TpFundoClasse: row[8], IdSubclasse: row[9],
-				}
-				key := strings.ReplaceAll(row[0], ".", "")
-				key = strings.ReplaceAll(key, "-", "")
-				key = strings.ReplaceAll(key, "/", "")
-				laminaRentabMesCache[key] = append(laminaRentabMesCache[key], info)
 			}
 		}
 	}
@@ -733,7 +749,7 @@ func searchLaminaHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Parâmetro 'cnpj' é obrigatório", http.StatusBadRequest)
 		return
 	}
-	table := r.URL.Query().Get("table") // "LAMINA", "CARTEIRA", "RENTAB_ANO", "RENTAB_MES" ou vazio para todas
+	table := strings.ToUpper(r.URL.Query().Get("table")) // "LAMINA", "CARTEIRA", "RENTAB_ANO", "RENTAB_MES" ou vazio para todas
 	year := r.URL.Query().Get("year")
 	month := r.URL.Query().Get("month")
 	isLatest := r.URL.Query().Get("isLatest") == "true"
