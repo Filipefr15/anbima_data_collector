@@ -992,44 +992,54 @@ var fipCacheLoaded bool
 var fipCacheMutex sync.RWMutex
 
 func loadFipCache() error {
+	dir := "fip_padronized"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("erro ao ler diretório: %w", err)
+	}
+
 	fipCache = make(map[string][]InfoFIP)
-	file := "fip_final/inf_tri_quadri_fip_geral.csv"
-	f, err := os.Open(file)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	reader := csv.NewReader(f)
-	reader.Comma = ','
-	reader.FieldsPerRecord = -1
-	records, err := reader.ReadAll()
-	if err != nil {
-		return err
-	}
-	for i, row := range records {
-		if i == 0 || len(row) < 55 {
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "inf_tri_quadri_fip") {
 			continue
 		}
-		info := InfoFIP{
-			CNPJ: row[0], DenomSocial: row[1], Data: row[2], VlPatrimLiq: row[3], QtCota: row[4],
-			VlPatrimCota: row[5], NrCotst: row[6], EntidInvest: row[7], PublicoAlvo: row[8], VlCapComprom: row[9],
-			QtCotaSubscr: row[10], VlCapSubscr: row[11], QtCotaIntegr: row[12], VlCapIntegr: row[13], VlInvestFipCota: row[14],
-			NrCotstSubscrPF: row[15], PrCotaSubscrPF: row[16], NrCotstSubscrPJNF: row[17], PrCotaSubscrPJNF: row[18], NrCotstSubscrBanco: row[19],
-			PrCotaSubscrBanco: row[20], NrCotstSubscrCorretoraDistrib: row[21], PrCotaSubscrCorretoraDistrib: row[22], NrCotstSubscrPJFinanc: row[23], PrCotaSubscrPJFinanc: row[24],
-			NrCotstSubscrINVNR: row[25], PrCotaSubscrINVNR: row[26], NrCotstSubscrEAPC: row[27], PrCotaSubscrEAPC: row[28], NrCotstSubscrEFPC: row[29],
-			PrCotaSubscrEFPC: row[30], NrCotstSubscrRPPS: row[31], PrCotaSubscrRPPS: row[32], NrCotstSubscrSegur: row[33], PrCotaSubscrSegur: row[34],
-			NrCotstSubscrCapitaliz: row[35], PrCotaSubscrCapitaliz: row[36], NrCotstSubscrFII: row[37], PrCotaSubscrFII: row[38], NrCotstSubscrFI: row[39],
-			PrCotaSubscrFI: row[40], NrCotstSubscrDistrib: row[41], PrCotaSubscrDistrib: row[42], NrCotstSubscrOutro: row[43], PrCotaSubscrOutro: row[44],
-			NrTotalCotstSubscr: row[45], PrTotalCotaSubscr: row[46], ClasseCota: row[47], NrCotstSubscrClasse: row[48], QtCotaSubscrClasse: row[49],
-			QtCotaIntegrClasse: row[50], VlQuotaClasse: row[51], DireitoPolitClasse: row[52], DireitoEconClasse: row[53], TpFundoClasse: row[54],
+		f, err := os.Open(dir + "/" + file.Name())
+		if err != nil {
+			continue
 		}
-		key := normalizeCNPJ(strings.TrimSpace(row[0]))
-		fipCache[key] = append(fipCache[key], info)
+		reader := csv.NewReader(f)
+		reader.FieldsPerRecord = -1
+		records, err := reader.ReadAll()
+		f.Close()
+		if err != nil {
+			continue
+		}
+		for i, row := range records {
+			if i == 0 || len(row) < 55 {
+				continue
+			}
+			info := InfoFIP{
+				CNPJ: row[0], DenomSocial: row[1], Data: row[2], VlPatrimLiq: row[3], QtCota: row[4],
+				VlPatrimCota: row[5], NrCotst: row[6], EntidInvest: row[7], PublicoAlvo: row[8], VlCapComprom: row[9],
+				QtCotaSubscr: row[10], VlCapSubscr: row[11], QtCotaIntegr: row[12], VlCapIntegr: row[13], VlInvestFipCota: row[14],
+				NrCotstSubscrPF: row[15], PrCotaSubscrPF: row[16], NrCotstSubscrPJNF: row[17], PrCotaSubscrPJNF: row[18], NrCotstSubscrBanco: row[19],
+				PrCotaSubscrBanco: row[20], NrCotstSubscrCorretoraDistrib: row[21], PrCotaSubscrCorretoraDistrib: row[22], NrCotstSubscrPJFinanc: row[23], PrCotaSubscrPJFinanc: row[24],
+				NrCotstSubscrINVNR: row[25], PrCotaSubscrINVNR: row[26], NrCotstSubscrEAPC: row[27], PrCotaSubscrEAPC: row[28], NrCotstSubscrEFPC: row[29],
+				PrCotaSubscrEFPC: row[30], NrCotstSubscrRPPS: row[31], PrCotaSubscrRPPS: row[32], NrCotstSubscrSegur: row[33], PrCotaSubscrSegur: row[34],
+				NrCotstSubscrCapitaliz: row[35], PrCotaSubscrCapitaliz: row[36], NrCotstSubscrFII: row[37], PrCotaSubscrFII: row[38], NrCotstSubscrFI: row[39],
+				PrCotaSubscrFI: row[40], NrCotstSubscrDistrib: row[41], PrCotaSubscrDistrib: row[42], NrCotstSubscrOutro: row[43], PrCotaSubscrOutro: row[44],
+				NrTotalCotstSubscr: row[45], PrTotalCotaSubscr: row[46], ClasseCota: row[47], NrCotstSubscrClasse: row[48], QtCotaSubscrClasse: row[49],
+				QtCotaIntegrClasse: row[50], VlQuotaClasse: row[51], DireitoPolitClasse: row[52], DireitoEconClasse: row[53], TpFundoClasse: row[54],
+			}
+			key := normalizeCNPJ(strings.TrimSpace(row[0]))
+			fipCache[key] = append(fipCache[key], info)
+		}
 	}
 	fipCacheMutex.Lock()
 	fipCacheLoaded = true
 	fipCacheMutex.Unlock()
 	return nil
+
 }
 
 func searchFipHandler(w http.ResponseWriter, r *http.Request) {
