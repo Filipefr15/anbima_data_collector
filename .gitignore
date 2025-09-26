@@ -30,6 +30,7 @@ go.work.sum
 lamina
 lamina_padronized
 inf_diario
+inf_diario_padronized
 inf_diario_ultimos_dias
 fidc
 fidc_mensal_anualizado
