@@ -25,17 +25,21 @@ func main() {
 	for {
 		switch escolha {
 		case 1:
-			// runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
-			// fmt.Println("Informes diários baixados com sucesso.")
-			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
-			fmt.Println("Lâminas baixadas com sucesso.")
+			runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
+			fmt.Println("Informes diários baixados com sucesso.")
+			// runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
+			// fmt.Println("Lâminas baixadas com sucesso.")
 
 		case 2:
 			// err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024})
-			err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024, 2025})
-			if err != nil {
-				fmt.Println("Erro ao organizar inf_diario:", err)
-			}
+			// err := organizeInfDiarioAndSelectLastDay([]int{2021, 2022, 2023, 2024, 2025})
+			// if err != nil {
+			// 	fmt.Println("Erro ao organizar inf_diario:", err)
+			// }
+			// csvPadronizationInfDiario([]int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+			// fmt.Println("Inf_diario organizado com sucesso!")
+			pickLastDayOfMonthInfDiario([]int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+			fmt.Println("Último dia de cada mês selecionado com sucesso!")
 		case 3:
 			startServer()
 		case 4:
@@ -136,11 +140,11 @@ func main() {
 }
 
 func startServer() {
-	// err := loadInfoDiarioCache()
-	// if err != nil {
-	// 	fmt.Println("Erro ao carregar cache:", err)
-	// 	return
-	// }
+	err := loadInfoDiarioCache()
+	if err != nil {
+		fmt.Println("Erro ao carregar cache:", err)
+		return
+	}
 
 	// err = loadFIDCCache()
 	// if err != nil {
@@ -148,11 +152,11 @@ func startServer() {
 	// 	return
 	// }
 
-	err := loadLaminaCache([]int{2020, 2021, 2022, 2023, 2024, 2025})
-	if err != nil {
-		fmt.Println("Erro ao carregar cache Lâminas:", err)
-		return
-	}
+	// err := loadLaminaCache([]int{2020, 2021, 2022, 2023, 2024, 2025})
+	// if err != nil {
+	// 	fmt.Println("Erro ao carregar cache Lâminas:", err)
+	// 	return
+	// }
 
 	http.HandleFunc("/searchInfo", searchInfoHandler)
 	fmt.Println("search info carregado")
