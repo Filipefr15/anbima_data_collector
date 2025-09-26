@@ -511,6 +511,165 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 	return nil
 }
 
+// Cda é basicamente a "carteira" do fundo, mas dividida em MUITOS arquivos mensais (sinceramente, sei lá, mas blz)
+func csvPadronizationCda() error {
+	const maxGoroutines = 15
+	sem := make(chan struct{}, maxGoroutines)
+
+	dir := "cda"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("erro ao ler diretório %s: %v", dir, err)
+	}
+	// verificar se var wg feita aqui não causa lentidão durante a procura por ela nunca resetar
+	// avaliar depois.
+	var wg sync.WaitGroup
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "cda") {
+			continue
+		}
+		arquivo := dir + "/" + file.Name()
+		if _, err := os.Stat(arquivo); err != nil {
+			continue
+		}
+		sem <- struct{}{}
+		wg.Add(1)
+		go func(arquivo string) {
+			defer wg.Done()
+			defer func() { <-sem }()
+
+			f, err := os.Open(arquivo)
+			if err != nil {
+				fmt.Printf("Erro ao abrir arquivo %s: %v\n", arquivo, err)
+				return
+			}
+			defer f.Close()
+
+			reader := transform.NewReader(f, charmap.ISO8859_1.NewDecoder())
+			scanner := bufio.NewScanner(reader)
+
+			var records [][]string
+			var header []string
+			lineNum := 0
+
+			for scanner.Scan() {
+				lineNum++
+				line := scanner.Text()
+
+				r := csv.NewReader(strings.NewReader(line))
+				r.Comma = ';'
+				r.LazyQuotes = true
+
+				row, err := r.Read()
+				if err != nil {
+					fmt.Printf("Erro ao ler linha %d em %s: %v\n", lineNum, arquivo, err)
+					if header != nil {
+						fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+						if fixedRow != nil {
+							records = append(records, fixedRow)
+							continue
+						}
+					}
+					fmt.Printf("Pulando linha %d irrecuperável\n", lineNum)
+					continue
+				}
+
+				if header == nil {
+					header = row
+					records = append(records, row)
+					continue
+				}
+
+				if len(row) != len(header) {
+					fmt.Printf("Linha %d tem %d campos, header tem %d campos\n", lineNum, len(row), len(header))
+					fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+					if fixedRow != nil {
+						records = append(records, fixedRow)
+						continue
+					}
+					diff := len(row) - len(header)
+					if diff > 0 {
+						for i, val := range row {
+							if _, err := fmt.Sscanf(val, "%f", new(float64)); err != nil {
+								mergedVal := strings.Join(row[i:i+diff+1], ";")
+								newRow := append(row[:i], mergedVal)
+								if i+diff+1 < len(row) {
+									newRow = append(newRow, row[i+diff+1:]...)
+								}
+								row = newRow
+								break
+							}
+						}
+					}
+				}
+
+				if len(row) != len(header) {
+					fmt.Printf("Ignorando linha irrecuperável %d em %s: %v\n", lineNum, arquivo, row)
+					continue
+				}
+
+				records = append(records, row)
+			}
+
+			if err := scanner.Err(); err != nil {
+				fmt.Printf("Erro ao escanear arquivo %s: %v\n", arquivo, err)
+			}
+
+			if len(records) > 0 {
+				df := dataframe.LoadRecords(records)
+
+				mapColNameValue := map[string]string{}
+				hasTpFundoClasse := false
+
+				colMap := map[string]string{
+					"TP_FUNDO":   "TP_FUNDO_CLASSE",
+					"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+				}
+
+				for _, colName := range df.Names() {
+					if colName == "TP_FUNDO_CLASSE" {
+						hasTpFundoClasse = true
+					}
+					if newName, ok := colMap[colName]; ok && newName != colName {
+						df = df.Rename(newName, colName)
+					}
+				}
+
+				if !hasTpFundoClasse {
+					mapColNameValue["TP_FUNDO_CLASSE"] = "Não informado"
+				}
+
+				for colName, colValue := range mapColNameValue {
+					vals := make([]string, df.Nrow())
+					for i := range vals {
+						vals[i] = colValue
+					}
+					newCol := series.New(vals, series.String, colName)
+					df = df.Mutate(newCol)
+				}
+
+				os.MkdirAll("cda_padronized", os.ModePerm)
+				outFileName := dir + "_padronized" + "/" + file.Name()
+				outFile, err := os.Create(outFileName)
+				if err != nil {
+					fmt.Printf("Erro ao criar arquivo %s: %v\n", outFileName, err)
+				}
+				if err := df.WriteCSV(outFile); err != nil {
+					fmt.Printf("Erro ao escrever CSV em %s: %v\n", outFileName, err)
+				}
+				outFile.Close()
+				fmt.Printf("Arquivo %s gerado com sucesso!\n", outFileName)
+			}
+		}(arquivo)
+	}
+
+	wg.Wait()
+	// Fechar o canal de semáforo
+	close(sem)
+
+	return nil
+}
+
 // padroniza inf_diario
 func csvPadronizationInfDiario(anos, meses []int) error {
 	const maxGoroutines = 5

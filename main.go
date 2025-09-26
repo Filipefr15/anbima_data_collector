@@ -109,6 +109,10 @@ func main() {
 			downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
 			fmt.Println("Cadastro de informações de fundos (registro_fundo_classe) baixados com sucesso.")
 			simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
+		case 13:
+			runDownloads([]int{2023, 2024, 2025}, []string{"cda"})
+		case 14:
+			csvPadronizationCda()
 		case 0:
 			fmt.Println("Saindo...")
 			return
