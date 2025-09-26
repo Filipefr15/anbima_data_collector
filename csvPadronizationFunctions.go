@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/go-gota/gota/dataframe"
 	"github.com/go-gota/gota/series"
@@ -238,11 +239,6 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 							continue
 						}
 
-						// for i, val := range row {
-						// 	row[i] = strings.TrimPrefix(val, `"`)
-						// 	row[i] = strings.TrimSuffix(val, `"`)
-						// }
-
 						if header == nil {
 							header = row
 							records = append(records, row)
@@ -296,19 +292,31 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 						// 	}
 						// }
 
+						mapColNameValue := map[string]string{}
+						hasIdSubClasse, hasTpFundoClasse := false, false
+
 						colMap := map[string]string{
 							"TP_FUNDO":   "TP_FUNDO_CLASSE",
 							"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
 						}
+
 						for _, colName := range df.Names() {
+							if colName == "ID_SUBCLASSE" {
+								hasIdSubClasse = true
+							}
+							if colName == "TP_FUNDO_CLASSE" {
+								hasTpFundoClasse = true
+							}
 							if newName, ok := colMap[colName]; ok && newName != colName {
 								df = df.Rename(newName, colName)
 							}
 						}
 
-						mapColNameValue := map[string]string{
-							"TP_FUNDO_CLASSE": "Não informado",
-							"ID_SUBCLASSE":    "",
+						if !hasIdSubClasse {
+							mapColNameValue["ID_SUBCLASSE"] = ""
+						}
+						if !hasTpFundoClasse {
+							mapColNameValue["TP_FUNDO_CLASSE"] = "Não informado"
 						}
 
 						for colName, colValue := range mapColNameValue {
@@ -338,6 +346,331 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 		}
 	}
 
+	return nil
+}
+
+func csvPadronizationInfDiario(anos, meses []int) error {
+	const maxGoroutines = 5
+	sem := make(chan struct{}, maxGoroutines)
+
+	for _, ano := range anos {
+		// dfCh := make(chan dataframe.DataFrame)
+		var wg sync.WaitGroup
+
+		for _, mes := range meses {
+			arquivo := fmt.Sprintf("inf_diario/inf_diario_fi_%d%02d.csv", ano, mes)
+			if _, err := os.Stat(arquivo); err != nil {
+				continue
+			}
+
+			sem <- struct{}{}
+			wg.Add(1)
+			go func(arquivo string) {
+				defer wg.Done()
+				defer func() { <-sem }()
+
+				f, err := os.Open(arquivo)
+				if err != nil {
+					fmt.Printf("Erro ao abrir arquivo %s: %v\n", arquivo, err)
+					return
+				}
+				defer f.Close()
+
+				reader := transform.NewReader(f, charmap.ISO8859_1.NewDecoder())
+				scanner := bufio.NewScanner(reader)
+
+				var records [][]string
+				var header []string
+				lineNum := 0
+
+				for scanner.Scan() {
+					lineNum++
+					line := scanner.Text()
+
+					r := csv.NewReader(strings.NewReader(line))
+					r.Comma = ';'
+					r.LazyQuotes = true
+
+					row, err := r.Read()
+					if err != nil {
+						fmt.Printf("Erro ao ler linha %d em %s: %v\n", lineNum, arquivo, err)
+						if header != nil {
+							fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+							if fixedRow != nil {
+								records = append(records, fixedRow)
+								continue
+							}
+						}
+						fmt.Printf("Pulando linha %d irrecuperável\n", lineNum)
+						continue
+					}
+
+					if header == nil {
+						header = row
+						records = append(records, row)
+						continue
+					}
+
+					if len(row) != len(header) {
+						fmt.Printf("Linha %d tem %d campos, header tem %d campos\n", lineNum, len(row), len(header))
+						fixedRow := fixCsvLine(arquivo, lineNum, len(header))
+						if fixedRow != nil {
+							records = append(records, fixedRow)
+							continue
+						}
+						diff := len(row) - len(header)
+						if diff > 0 {
+							for i, val := range row {
+								if _, err := fmt.Sscanf(val, "%f", new(float64)); err != nil {
+									mergedVal := strings.Join(row[i:i+diff+1], ";")
+									newRow := append(row[:i], mergedVal)
+									if i+diff+1 < len(row) {
+										newRow = append(newRow, row[i+diff+1:]...)
+									}
+									row = newRow
+									break
+								}
+							}
+						}
+					}
+
+					if len(row) != len(header) {
+						fmt.Printf("Ignorando linha irrecuperável %d em %s: %v\n", lineNum, arquivo, row)
+						continue
+					}
+
+					records = append(records, row)
+				}
+
+				if err := scanner.Err(); err != nil {
+					fmt.Printf("Erro ao escanear arquivo %s: %v\n", arquivo, err)
+				}
+
+				if len(records) > 0 {
+					df := dataframe.LoadRecords(records)
+
+					// colMap := map[string]string{
+					// 	"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+					// }
+					// for _, colName := range df.Names() {
+					// 	if newName, ok := colMap[colName]; ok && newName != colName {
+					// 		df = df.Rename(newName, colName)
+					// 	}
+					// }
+
+					mapColNameValue := map[string]string{}
+					hasIdSubClasse, hasTpFundoClasse := false, false
+
+					colMap := map[string]string{
+						"TP_FUNDO":   "TP_FUNDO_CLASSE",
+						"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+					}
+
+					for _, colName := range df.Names() {
+						if colName == "ID_SUBCLASSE" {
+							hasIdSubClasse = true
+						}
+						if colName == "TP_FUNDO_CLASSE" {
+							hasTpFundoClasse = true
+						}
+						if newName, ok := colMap[colName]; ok && newName != colName {
+							df = df.Rename(newName, colName)
+						}
+					}
+
+					if !hasIdSubClasse {
+						mapColNameValue["ID_SUBCLASSE"] = ""
+					}
+					if !hasTpFundoClasse {
+						mapColNameValue["TP_FUNDO_CLASSE"] = "Não informado"
+					}
+
+					for colName, colValue := range mapColNameValue {
+						vals := make([]string, df.Nrow())
+						for i := range vals {
+							vals[i] = colValue
+						}
+						newCol := series.New(vals, series.String, colName)
+						df = df.Mutate(newCol)
+					}
+
+					os.MkdirAll("inf_diario_padronized", os.ModePerm)
+					outFileName := fmt.Sprintf("inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
+					outFile, err := os.Create(outFileName)
+					if err != nil {
+						fmt.Printf("Erro ao criar arquivo %s: %v\n", outFileName, err)
+					}
+					if err := df.WriteCSV(outFile); err != nil {
+						fmt.Printf("Erro ao escrever CSV em %s: %v\n", outFileName, err)
+					}
+					outFile.Close()
+					fmt.Printf("Arquivo %s gerado com sucesso!\n", outFileName)
+				}
+			}(arquivo)
+		}
+		wg.Wait()
+	}
+
+	return nil
+}
+
+func pickLastDayOfMonthInfDiario(anos, meses []int) error {
+	const maxGoroutines = 5
+	sem := make(chan struct{}, maxGoroutines)
+
+	for _, ano := range anos {
+		var wg sync.WaitGroup
+
+		for _, mes := range meses {
+			arquivo := fmt.Sprintf("inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
+			if _, err := os.Stat(arquivo); err != nil {
+				continue
+			}
+
+			sem <- struct{}{}
+			wg.Add(1)
+			go func(arquivo string) {
+				defer wg.Done()
+				defer func() { <-sem }()
+
+				f, err := os.Open(arquivo)
+				if err != nil {
+					fmt.Printf("Erro ao abrir arquivo %s: %v\n", arquivo, err)
+					return
+				}
+				defer f.Close()
+
+				df := dataframe.ReadCSV(f)
+				f.Close()
+
+				dates := df.Col("DT_COMPTC").Records()
+				parsed := make([]time.Time, len(dates))
+				for i, d := range dates {
+					t, _ := time.Parse("2006-01-02", d)
+					parsed[i] = t
+				}
+
+				cnpjs := df.Col("CNPJ_FUNDO_CLASSE").Records()
+				lastRows := []int{}
+				lastSeen := map[string]time.Time{}
+				rowIdx := map[string]int{}
+
+				for i, cnpj := range cnpjs {
+					curDate := parsed[i]
+					if curDate.After(lastSeen[cnpj]) {
+						lastSeen[cnpj] = curDate
+						rowIdx[cnpj] = i
+					}
+				}
+				for _, idx := range rowIdx {
+					lastRows = append(lastRows, idx)
+				}
+				df = df.Subset(lastRows)
+				os.MkdirAll("inf_diario_ultimos_dias", os.ModePerm)
+				outFileName := fmt.Sprintf("inf_diario_ultimos_dias/inf_diario_fi_%d%02d.csv", ano, mes)
+				outFile, err := os.Create(outFileName)
+				if err != nil {
+					fmt.Println(err)
+				}
+				if err := df.WriteCSV(outFile); err != nil {
+					fmt.Println(err)
+				}
+				outFile.Close()
+				fmt.Printf("Arquivo %s gerado com sucesso!\n", outFileName)
+			}(arquivo)
+		}
+		wg.Wait()
+	}
+
+	return nil
+}
+
+// Organiza os dados de inf_diario e seleciona apenas o último dia de cada mês para cada CNPJ
+func organizeInfDiarioAndSelectLastDay2(anos []int) error {
+	// anos := []int{2021, 2022, 2023, 2024}
+	for _, ano := range anos {
+		var merged dataframe.DataFrame
+		first := true
+
+		for mes := 1; mes <= 12; mes++ {
+			arquivo := fmt.Sprintf("inf_diario/inf_diario_fi_%d%02d.csv", ano, mes)
+			if _, err := os.Stat(arquivo); err != nil {
+				continue
+			}
+			f, err := os.Open(arquivo)
+			if err != nil {
+				return err
+			}
+			df := dataframe.ReadCSV(f, dataframe.WithDelimiter(';'))
+			f.Close()
+
+			// Normaliza colunas
+			colMap := map[string]string{
+				"TP_FUNDO":   "TP_FUNDO_CLASSE",
+				"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
+			}
+			for _, colName := range df.Names() {
+				if newName, ok := colMap[colName]; ok && newName != colName {
+					df = df.Rename(newName, colName)
+				}
+			}
+			for _, colName := range df.Names() {
+				if colName == "ID_SUBCLASSE" {
+					df = df.Drop("ID_SUBCLASSE")
+					break
+				}
+			}
+
+			// Converte DT_COMPTC para time.Time
+			dates := df.Col("DT_COMPTC").Records()
+			parsed := make([]time.Time, len(dates))
+			for i, d := range dates {
+				t, _ := time.Parse("2006-01-02", d)
+				parsed[i] = t
+			}
+
+			// Última data por CNPJ
+			cnpjs := df.Col("CNPJ_FUNDO_CLASSE").Records()
+			lastRows := []int{}
+			lastSeen := map[string]time.Time{}
+			rowIdx := map[string]int{}
+
+			for i, cnpj := range cnpjs {
+				curDate := parsed[i]
+				if curDate.After(lastSeen[cnpj]) {
+					lastSeen[cnpj] = curDate
+					rowIdx[cnpj] = i
+				}
+			}
+			for _, idx := range rowIdx {
+				lastRows = append(lastRows, idx)
+			}
+			df = df.Subset(lastRows)
+
+			if first {
+				merged = df
+				first = false
+			} else {
+				merged = merged.RBind(df)
+			}
+		}
+
+		if merged.Nrow() == 0 {
+			fmt.Printf("Nenhum dado encontrado para o ano %d\n", ano)
+			continue
+		}
+
+		outFileName := fmt.Sprintf("inf_diario_ultimos_dias/consolidado_%d_ultimo_dia.csv", ano)
+		outFile, err := os.Create(outFileName)
+		if err != nil {
+			return err
+		}
+		if err := merged.WriteCSV(outFile); err != nil {
+			return err
+		}
+		outFile.Close()
+		fmt.Printf("Arquivo %s gerado com sucesso!\n", outFileName)
+	}
 	return nil
 }
 
