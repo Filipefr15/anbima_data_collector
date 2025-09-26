@@ -33,15 +33,13 @@ inf_diario
 inf_diario_padronized
 inf_diario_ultimos_dias
 fidc
-fidc_mensal_anualizado
-fidcs_anualizados_juntados
+fidc_padronized
 fip
 fip_padronized
 adm_fii
 adm_fii_padronized
 fi
 fi_padronized
-fidc_padronized
 
 # Editor/IDE
 # .idea/
