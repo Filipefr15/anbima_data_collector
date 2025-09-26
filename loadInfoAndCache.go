@@ -186,112 +186,142 @@ func loadFIDCCache() error {
 	fidcCOTACache = make(map[string][]InfoFIDCCOTA)
 	fidcRENTCache = make(map[string][]InfoFIDCRENT)
 
-	// PL
-	filePL := "fidcs_anualizados_juntados/fidc_consolidado_IV_.csv"
-	fPL, err := os.Open(filePL)
-	if err == nil {
-		reader := csv.NewReader(fPL)
+	dir := "fidc_padronized"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return fmt.Errorf("erro ao ler diretório: %w", err)
+	}
+
+	//// PL \\\\
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "inf_mensal_fidc_tab_IV_") {
+			continue
+		}
+		f, err := os.Open(dir + "/" + file.Name())
+		if err != nil {
+			continue
+		}
+		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
-		fPL.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 6 {
-					continue
-				}
-				info := InfoFIDCPL{
-					CNPJ:        strings.TrimSpace(row[0]),
-					DenomSocial: row[1],
-					Data:        row[2],
-					VlPL:        row[3],
-					VlPLMedio:   row[4],
-					TipoFundo:   row[5],
-				}
-				key := normalizeCNPJ(info.CNPJ)
-				fidcPLCache[key] = append(fidcPLCache[key], info)
+		f.Close()
+		if err != nil {
+			continue
+		}
+		for i, row := range records {
+			if i == 0 || len(row) < 6 {
+				continue
 			}
+			info := InfoFIDCPL{
+				CNPJ:        strings.TrimSpace(row[0]),
+				DenomSocial: row[1],
+				Data:        row[2],
+				VlPL:        row[3],
+				VlPLMedio:   row[4],
+				TipoFundo:   row[5],
+			}
+			key := normalizeCNPJ(info.CNPJ)
+			fidcPLCache[key] = append(fidcPLCache[key], info)
 		}
 	}
 
-	// COTISTAS
-	fileCOTISTAS := "fidcs_anualizados_juntados/fidc_consolidado_X_1_.csv"
-	fCOTISTAS, err := os.Open(fileCOTISTAS)
-	if err == nil {
-		reader := csv.NewReader(fCOTISTAS)
+	//// COTISTAS \\\\
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "inf_mensal_fidc_tab_X_1_") {
+			continue
+		}
+		f, err := os.Open(dir + "/" + file.Name())
+		if err != nil {
+			continue
+		}
+		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
-		fCOTISTAS.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 6 {
-					continue
-				}
-				info := InfoFIDCCOTISTAS{
-					CNPJ:        strings.TrimSpace(row[0]),
-					DenomSocial: row[1],
-					Data:        row[2],
-					ClasseSerie: row[3],
-					NumCotst:    row[4],
-					TipoFundo:   row[5],
-				}
-				key := normalizeCNPJ(info.CNPJ)
-				fidcCOTISTASCache[key] = append(fidcCOTISTASCache[key], info)
+		f.Close()
+		if err != nil {
+			continue
+		}
+		for i, row := range records {
+			if i == 0 || len(row) < 6 {
+				continue
 			}
+			info := InfoFIDCCOTISTAS{
+				CNPJ:        strings.TrimSpace(row[0]),
+				DenomSocial: row[1],
+				Data:        row[2],
+				ClasseSerie: row[3],
+				NumCotst:    row[4],
+				TipoFundo:   row[5],
+			}
+			key := normalizeCNPJ(info.CNPJ)
+			fidcCOTISTASCache[key] = append(fidcCOTISTASCache[key], info)
 		}
 	}
 
-	// COTA
-	fileCOTA := "fidcs_anualizados_juntados/fidc_consolidado_X_2_.csv"
-	fCOTA, err := os.Open(fileCOTA)
-	if err == nil {
-		reader := csv.NewReader(fCOTA)
+	//// COTA \\\\
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "inf_mensal_fidc_tab_X_2_") {
+			continue
+		}
+		f, err := os.Open(dir + "/" + file.Name())
+		if err != nil {
+			continue
+		}
+		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
-		fCOTA.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 7 {
-					continue
-				}
-				info := InfoFIDCCOTA{
-					CNPJ:        strings.TrimSpace(row[0]),
-					DenomSocial: row[1],
-					Data:        row[2],
-					ClasseSerie: row[3],
-					QtCota:      row[4],
-					VlCota:      row[5],
-					TipoFundo:   row[6],
-				}
-				key := normalizeCNPJ(info.CNPJ)
-				fidcCOTACache[key] = append(fidcCOTACache[key], info)
+		f.Close()
+		if err != nil {
+			continue
+		}
+		for i, row := range records {
+			if i == 0 || len(row) < 7 {
+				continue
 			}
+			info := InfoFIDCCOTA{
+				CNPJ:        strings.TrimSpace(row[0]),
+				DenomSocial: row[1],
+				Data:        row[2],
+				ClasseSerie: row[3],
+				QtCota:      row[4],
+				VlCota:      row[5],
+				TipoFundo:   row[6],
+			}
+			key := normalizeCNPJ(info.CNPJ)
+			fidcCOTACache[key] = append(fidcCOTACache[key], info)
 		}
 	}
 
-	// RENT
-	fileRENT := "fidcs_anualizados_juntados/fidc_consolidado_X_3_.csv"
-	fRENT, err := os.Open(fileRENT)
-	if err == nil {
-		reader := csv.NewReader(fRENT)
+	//// RENT \\\\
+	for _, file := range files {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "inf_mensal_fidc_tab_X_3_") {
+			continue
+		}
+		f, err := os.Open(dir + "/" + file.Name())
+		if err != nil {
+			continue
+		}
+		reader := csv.NewReader(f)
 		reader.FieldsPerRecord = -1
 		records, err := reader.ReadAll()
-		fRENT.Close()
-		if err == nil {
-			for i, row := range records {
-				if i == 0 || len(row) < 6 {
-					continue
-				}
-				info := InfoFIDCRENT{
-					CNPJ:        strings.TrimSpace(row[0]),
-					DenomSocial: row[1],
-					Data:        row[2],
-					ClasseSerie: row[3],
-					VlRentabMes: row[4],
-					TipoFundo:   row[5],
-				}
-				key := normalizeCNPJ(info.CNPJ)
-				fidcRENTCache[key] = append(fidcRENTCache[key], info)
+		f.Close()
+		if err != nil {
+			continue
+		}
+		for i, row := range records {
+			if i == 0 || len(row) < 6 {
+				continue
 			}
+			info := InfoFIDCRENT{
+				CNPJ:        strings.TrimSpace(row[0]),
+				DenomSocial: row[1],
+				Data:        row[2],
+				ClasseSerie: row[3],
+				VlRentabMes: row[4],
+				TipoFundo:   row[5],
+			}
+			key := normalizeCNPJ(info.CNPJ)
+			fidcRENTCache[key] = append(fidcRENTCache[key], info)
 		}
 	}
 
