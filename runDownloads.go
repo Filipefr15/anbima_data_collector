@@ -51,7 +51,12 @@ func runDownloads(anos []int, objetoBuscado []string) {
 			if err != nil {
 				fmt.Println("Erro download:", err)
 				if err := os.Remove(job.file); err != nil {
-					fmt.Printf("Erro ao excluir o arquivo %s: %v\n", job.file, err)
+					fmt.Printf("Erro ao excluir o arquivo %s: %v, tentando novamente...\n", job.file, err)
+					if err := os.Remove(job.file); err != nil {
+						fmt.Printf("Erro ao excluir o arquivo %s: %v\n", job.file, err)
+					} else {
+						fmt.Printf("Arquivo %s excluído com sucesso.\n", job.file)
+					}
 				} else {
 					fmt.Printf("Arquivo %s excluído com sucesso.\n", job.file)
 				}
