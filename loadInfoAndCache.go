@@ -40,7 +40,7 @@ func loadInfoDiarioCache() error {
 
 	cache := make(map[string][]InfoDiario)
 	for _, file := range files {
-		if file.IsDir() || !strings.HasPrefix(file.Name(), "consolidado_") || !strings.HasSuffix(file.Name(), "_ultimo_dia.csv") {
+		if file.IsDir() || !strings.HasPrefix(file.Name(), "inf_diario") {
 			continue
 		}
 		f, err := os.Open(dir + "/" + file.Name())
