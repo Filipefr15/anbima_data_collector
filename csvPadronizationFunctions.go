@@ -513,7 +513,7 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 
 // Cda é basicamente a "carteira" do fundo, mas dividida em MUITOS arquivos mensais (sinceramente, sei lá, mas blz)
 func csvPadronizationCda() error {
-	const maxGoroutines = 15
+	const maxGoroutines = 4
 	sem := make(chan struct{}, maxGoroutines)
 
 	dir := "cda"
@@ -619,24 +619,43 @@ func csvPadronizationCda() error {
 				df := dataframe.LoadRecords(records)
 
 				mapColNameValue := map[string]string{}
-				hasTpFundoClasse := false
+				hasTpFundoClasse, hasIdSubClasse := false, false
 
 				colMap := map[string]string{
 					"TP_FUNDO":   "TP_FUNDO_CLASSE",
 					"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
 				}
 
-				for _, colName := range df.Names() {
-					if colName == "TP_FUNDO_CLASSE" {
-						hasTpFundoClasse = true
-					}
-					if newName, ok := colMap[colName]; ok && newName != colName {
-						df = df.Rename(newName, colName)
-					}
-				}
+				if strings.HasPrefix(file.Name(), "cda_fi_BLC_2_") {
+					colMap["CNPJ_FUNDO_COTA"] = "CNPJ_FUNDO_CLASSE_COTA"
+					colMap["NM_FUNDO_COTA"] = "NM_FUNDO_CLASSE_SUBCLASSE_COTA"
 
-				if !hasTpFundoClasse {
-					mapColNameValue["TP_FUNDO_CLASSE"] = "Não informado"
+					for _, colName := range df.Names() {
+						if colName == "ID_SUBCLASSE" {
+							hasIdSubClasse = true
+						}
+						if newName, ok := colMap[colName]; ok && newName != colName {
+							df = df.Rename(newName, colName)
+						}
+					}
+
+					if !hasIdSubClasse {
+						mapColNameValue["ID_SUBCLASSE"] = "Não informado"
+					}
+
+				} else {
+					for _, colName := range df.Names() {
+						if colName == "TP_FUNDO_CLASSE" {
+							hasTpFundoClasse = true
+						}
+						if newName, ok := colMap[colName]; ok && newName != colName {
+							df = df.Rename(newName, colName)
+						}
+					}
+
+					if !hasTpFundoClasse {
+						mapColNameValue["TP_FUNDO_CLASSE"] = "Não informado"
+					}
 				}
 
 				for colName, colValue := range mapColNameValue {

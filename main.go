@@ -171,7 +171,14 @@ func startServer2() {
 		return
 	}
 
+	err = loadCdaCache()
+	if err != nil {
+		fmt.Println("Erro ao carregar cache CDA:", err)
+		return
+	}
+
 	http.HandleFunc("/searchFip", searchFipHandler)
+	http.HandleFunc("/searchCda", searchCdaHandler)
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
 }

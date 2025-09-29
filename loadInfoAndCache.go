@@ -1123,3 +1123,399 @@ func searchFipHandler(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
 	enc.Encode(results)
 }
+
+// Structs para cada tipo CDA
+type InfoCdaBlc1 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, TP_TITPUB, CD_ISIN, CD_SELIC, DT_EMISSAO, DT_VENC string
+}
+type InfoCdaBlc2 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, CNPJ_FUNDO_CLASSE_COTA, ID_SUBCLASSE, NM_FUNDO_CLASSE_SUBCLASSE_COTA string
+}
+type InfoCdaBlc3 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, CD_SWAP, DS_SWAP string
+}
+type InfoCdaBlc5 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, CNPJ_EMISSOR, EMISSOR, DT_VENC, TITULO_POSFX, CD_INDEXADOR_POSFX, DS_INDEXADOR_POSFX, PR_INDEXADOR_POSFX, PR_CUPOM_POSFX, PR_TAXA_PREFX, RISCO_EMISSOR, AG_RISCO, DT_RISCO, GRAU_RISCO string
+}
+type InfoCdaBlc6 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, PF_PJ_EMISSOR, CPF_CNPJ_EMISSOR, EMISSOR, DT_VENC, TITULO_POSFX, CD_INDEXADOR_POSFX, DS_INDEXADOR_POSFX, PR_INDEXADOR_POSFX, PR_CUPOM_POSFX, PR_TAXA_PREFX, TITULO_CETIP, TITULO_GARANTIA, CNPJ_INSTITUICAO_FINANC_COOBR string
+}
+type InfoCdaBlc7 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, INVEST_COLETIVO, INVEST_COLETIVO_GESTOR, EMISSOR, DT_VENC, CD_PAIS, PAIS, CD_BV_MERC, BV_MERC, CD_ATIVO_BV_MERC, RISCO_EMISSOR, AG_RISCO, DT_RISCO, GRAU_RISCO, DS_ATIVO_EXTERIOR, QT_ATIVO_EXTERIOR, VL_ATIVO_EXTERIOR string
+}
+type InfoCdaBlc8 struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, DS_ATIVO, PF_PJ_EMISSOR, CPF_CNPJ_EMISSOR, EMISSOR string
+}
+type InfoCdaPL struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, VL_PATRIM_LIQ string
+}
+type InfoCdaFiim struct {
+	TP_FUNDO_CLASSE, CNPJ_FUNDO_CLASSE, DENOM_SOCIAL, DT_COMPTC, ID_DOC, VL_PATRIM_LIQ, TP_APLIC, TP_ATIVO, EMISSOR_LIGADO, TP_NEGOC, QT_VENDA_NEGOC, VL_VENDA_NEGOC, QT_AQUIS_NEGOC, VL_AQUIS_NEGOC, QT_POS_FINAL, VL_MERC_POS_FINAL, VL_CUSTO_POS_FINAL, DT_CONFID_APLIC, CD_ATIVO, DS_ATIVO, DT_VENC, PF_PJ_EMISSOR, CPF_CNPJ_EMISSOR, EMISSOR, RISCO_EMISSOR, CD_SELIC, DT_INI_VIGENCIA, CD_PAIS, PAIS, CD_BV_MERC, BV_MERC string
+}
+
+// Caches
+var cacheCdaBlc1 map[string][]InfoCdaBlc1
+var cacheCdaBlc2 map[string][]InfoCdaBlc2
+var cacheCdaBlc3 map[string][]InfoCdaBlc3
+var cacheCdaBlc5 map[string][]InfoCdaBlc5
+var cacheCdaBlc6 map[string][]InfoCdaBlc6
+var cacheCdaBlc7 map[string][]InfoCdaBlc7
+var cacheCdaBlc8 map[string][]InfoCdaBlc8
+var cacheCdaPL map[string][]InfoCdaPL
+var cacheCdaFiim map[string][]InfoCdaFiim
+var cdaCacheLoaded bool
+var cdaCacheMutex sync.RWMutex
+
+func loadCdaCache() error {
+	cacheCdaBlc1 = make(map[string][]InfoCdaBlc1)
+	cacheCdaBlc2 = make(map[string][]InfoCdaBlc2)
+	cacheCdaBlc3 = make(map[string][]InfoCdaBlc3)
+	cacheCdaBlc5 = make(map[string][]InfoCdaBlc5)
+	cacheCdaBlc6 = make(map[string][]InfoCdaBlc6)
+	cacheCdaBlc7 = make(map[string][]InfoCdaBlc7)
+	cacheCdaBlc8 = make(map[string][]InfoCdaBlc8)
+	cacheCdaPL = make(map[string][]InfoCdaPL)
+	cacheCdaFiim = make(map[string][]InfoCdaFiim)
+	dir := "cda_padronized"
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		fname := file.Name()
+		arquivo := dir + "/" + fname
+		f, err := os.Open(arquivo)
+		if err != nil {
+			continue
+		}
+		reader := csv.NewReader(f)
+		reader.FieldsPerRecord = -1
+		headers, err := reader.Read()
+		if err != nil {
+			f.Close()
+			continue
+		}
+		for {
+			row, err := reader.Read()
+			if err != nil {
+				break
+			}
+			if len(row) != len(headers) {
+				continue
+			}
+			key := normalizeCNPJ(row[1])
+			switch {
+			case strings.HasPrefix(fname, "cda_fi_BLC_1"):
+				info := InfoCdaBlc1{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20]}
+				cacheCdaBlc1[key] = append(cacheCdaBlc1[key], info)
+			// case strings.HasPrefix(fname, "cda_fi_BLC_2"):
+			// 	info := InfoCdaBlc2{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18]}
+			// 	cacheCdaBlc2[key] = append(cacheCdaBlc2[key], info)
+			case strings.HasPrefix(fname, "cda_fi_BLC_3"):
+				info := InfoCdaBlc3{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17]}
+				cacheCdaBlc3[key] = append(cacheCdaBlc3[key], info)
+			case strings.HasPrefix(fname, "cda_fi_BLC_5"):
+				info := InfoCdaBlc5{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28]}
+				cacheCdaBlc5[key] = append(cacheCdaBlc5[key], info)
+			case strings.HasPrefix(fname, "cda_fi_BLC_6"):
+				info := InfoCdaBlc6{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28]}
+				cacheCdaBlc6[key] = append(cacheCdaBlc6[key], info)
+			case strings.HasPrefix(fname, "cda_fi_BLC_7"):
+				info := InfoCdaBlc7{
+					row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[31],
+				}
+				cacheCdaBlc7[key] = append(cacheCdaBlc7[key], info)
+			case strings.HasPrefix(fname, "cda_fi_BLC_8"):
+				info := InfoCdaBlc8{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19]}
+				cacheCdaBlc8[key] = append(cacheCdaBlc8[key], info)
+			case strings.HasPrefix(fname, "cda_fi_PL"):
+				info := InfoCdaPL{row[0], row[1], row[2], row[3], row[4]}
+				cacheCdaPL[key] = append(cacheCdaPL[key], info)
+			case strings.HasPrefix(fname, "cda_fiim_"):
+				info := InfoCdaFiim{row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22], row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30]}
+				cacheCdaFiim[key] = append(cacheCdaFiim[key], info)
+
+			}
+		}
+		f.Close()
+	}
+	cdaCacheMutex.Lock()
+	cdaCacheLoaded = true
+	cdaCacheMutex.Unlock()
+	return nil
+}
+
+// Handler para busca CDA
+func searchCdaHandler(w http.ResponseWriter, r *http.Request) {
+	cnpj := r.URL.Query().Get("cnpj")
+	if cnpj == "" {
+		http.Error(w, "Parâmetro 'cnpj' é obrigatório", http.StatusBadRequest)
+		return
+	}
+	table := strings.ToUpper(r.URL.Query().Get("table")) // "BLC1", "BLC2", ... "PL", "FIIM"
+	year := r.URL.Query().Get("year")
+	month := r.URL.Query().Get("month")
+	isLatest := r.URL.Query().Get("isLatest") == "true"
+	normCNPJ := normalizeCNPJ(strings.TrimSpace(cnpj))
+	cdaCacheMutex.RLock()
+	loaded := cdaCacheLoaded
+	var resp interface{}
+	switch table {
+	case "BLC1":
+		var results []InfoCdaBlc1
+		for _, info := range cacheCdaBlc1[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc1
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "BLC2":
+		var results []InfoCdaBlc2
+		for _, info := range cacheCdaBlc2[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc2
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "BLC3":
+		var results []InfoCdaBlc3
+		for _, info := range cacheCdaBlc3[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc3
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "BLC5":
+		var results []InfoCdaBlc5
+		for _, info := range cacheCdaBlc5[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc5
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "BLC6":
+		var results []InfoCdaBlc6
+		for _, info := range cacheCdaBlc6[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc6
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "BLC7":
+		var results []InfoCdaBlc7
+		for _, info := range cacheCdaBlc7[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc7
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "BLC8":
+		var results []InfoCdaBlc8
+		for _, info := range cacheCdaBlc8[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaBlc8
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "PL":
+		var results []InfoCdaPL
+		for _, info := range cacheCdaPL[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaPL
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	case "FIIM":
+		var results []InfoCdaFiim
+		for _, info := range cacheCdaFiim[normCNPJ] {
+			if year != "" && (len(info.DT_COMPTC) < 4 || info.DT_COMPTC[:4] != year) {
+				continue
+			}
+			if month != "" && (len(info.DT_COMPTC) < 7 || info.DT_COMPTC[5:7] != month) {
+				continue
+			}
+			results = append(results, info)
+		}
+		if isLatest && len(results) > 0 {
+			maxDate := results[0].DT_COMPTC
+			for _, info := range results[1:] {
+				if info.DT_COMPTC > maxDate {
+					maxDate = info.DT_COMPTC
+				}
+			}
+			var filtered []InfoCdaFiim
+			for _, info := range results {
+				if info.DT_COMPTC == maxDate {
+					filtered = append(filtered, info)
+				}
+			}
+			results = filtered
+		}
+		resp = results
+	default:
+		resp = map[string]string{"error": "Tabela inválida"}
+	}
+	cdaCacheMutex.RUnlock()
+	w.Header().Set("Content-Type", "application/json")
+	if !loaded {
+		w.Write([]byte("[]"))
+		return
+	}
+	enc := json.NewEncoder(w)
+	enc.Encode(resp)
+}
