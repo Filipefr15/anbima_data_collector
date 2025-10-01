@@ -82,26 +82,27 @@ func main() {
 			// ex:
 			// tableName := "cadastro_adm_fii"
 			// csvFile := "adm_fii_padronized/cad_adm_fii.csv"
-			//database("cadastro_fi", "fi_padronized/cad_fi.csv")
+			database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
+			database("cadastro_fi", "fi_padronized/cad_fi.csv")
 			//database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
 			//database("registro_classe", "fi_padronized/registro_classe.csv")
 			//database("registro_fundo", "fi_padronized/registro_fundo.csv")
 			//database("registro_subclasse", "fi_padronized/registro_subclasse.csv")
 			//database("lamina_rentab_ano", "lamina_padronized/lamina_fi_rentab_ano_202508.csv")
 
-			for anoMes := 202508; anoMes >= 202101; {
-				database("inf_diario_ultimos_dias", fmt.Sprintf("inf_diario_ultimos_dias/inf_diario_fi_%d.csv", anoMes))
-				// decrementa anoMes corretamente
-				mes := anoMes % 100
-				ano := anoMes / 100
-				if mes == 1 {
-					ano--
-					mes = 12
-				} else {
-					mes--
-				}
-				anoMes = ano*100 + mes
-			}
+			// for anoMes := 202508; anoMes >= 202101; {
+			// 	database("inf_diario_ultimos_dias", fmt.Sprintf("inf_diario_ultimos_dias/inf_diario_fi_%d.csv", anoMes))
+			// 	// decrementa anoMes corretamente
+			// 	mes := anoMes % 100
+			// 	ano := anoMes / 100
+			// 	if mes == 1 {
+			// 		ano--
+			// 		mes = 12
+			// 	} else {
+			// 		mes--
+			// 	}
+			// 	anoMes = ano*100 + mes
+			// }
 		case 0:
 			fmt.Println("Saindo...")
 			return

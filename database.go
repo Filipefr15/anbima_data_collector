@@ -45,9 +45,9 @@ func database(tableName, csvFile string) {
 	}
 
 	// // 3. Cria a tabela baseada no CSV
-	// if err := createTableFromCSV(db, csvFile, tableName); err != nil {
-	// 	log.Fatal(err)
-	// }
+	if err := createTableFromCSV(db, csvFile, tableName); err != nil {
+		log.Fatal(err)
+	}
 
 	// 4. Importa os dados
 	if err := importCSV(db, csvFile, tableName); err != nil {
@@ -129,7 +129,8 @@ func createTableFromCSV(db *sql.DB, csvFile, tableName string) error {
 		columns = append(columns, fmt.Sprintf("%s %s", colName, colType))
 	}
 
-	createSQL := fmt.Sprintf("CREATE TABLE %s (\n  id SERIAL PRIMARY KEY,\n  %s\n)",
+	// createSQL := fmt.Sprintf("CREATE TABLE %s (\n  id SERIAL PRIMARY KEY,\n  %s\n)",
+	createSQL := fmt.Sprintf("CREATE TABLE %s (%s\n)",
 		tableName,
 		strings.Join(columns, ",\n  "))
 
