@@ -30,7 +30,6 @@ func main() {
 			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
 			fmt.Println("Lâminas baixadas com sucesso.")
 		case 2:
-			//padronizar e depois pegar o ultimo dia do mês
 			csvPadronizationInfDiario([]int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 			fmt.Println("Inf_diario organizado com sucesso!")
 			pickLastDayOfMonthInfDiario([]int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
@@ -43,41 +42,11 @@ func main() {
 		case 5:
 			csvPadronizationFidc([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"}, []int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 			fmt.Println("FIDC's padronizados com sucesso.")
-			// csvPadronizationFidc([]string{"_IV_", "_X_1_", "_X_2_", "_X_3_"},
-			// 	[]int{2021, 2022, 2023, 2024, 2025},
-			// 	[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-			// 	"fidc",
-			// 	map[string]string{
-			// 		"TP_FUNDO_CLASSE": "Não informado",
-			// 	},
-			// 	map[string]string{
-			// 		"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
-			// 		"TP_FUNDO":   "TP_FUNDO_CLASSE",
-			// 	})
-			// err := organizeFIDCInfMensal([]int{2021, 2022, 2023, 2024, 2025})
-			// if err != nil {
-			// 	fmt.Println("Erro ao organizar inf_mensal FIDC:", err)
-			// }
-			// fmt.Println("FIDC's organizados com sucesso.")
-			// err = mashFIDCs([]int{2021, 2022, 2023, 2024, 2025})
-			// if err != nil {
-			// 	fmt.Println("Erro ao organizar FIDC's importantes:", err)
-			// }
-			// fmt.Println("FIDC's importantes organizados com sucesso.")
 		case 6:
 			err := csvPadronizationLamina(
 				[]string{"_", "_carteira_", "_rentab_ano_", "_rentab_mes_"},
 				[]int{2021, 2022, 2023, 2024, 2025},
 				[]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12},
-				// "lamina",
-				// map[string]string{
-				// 	"TP_FUNDO_CLASSE": "Não informado",
-				// 	"ID_SUBCLASSE":    "",
-				// },
-				// map[string]string{
-				// 	"CNPJ_FUNDO": "CNPJ_FUNDO_CLASSE",
-				// 	"TP_FUNDO":   "TP_FUNDO_CLASSE",
-				// },
 			)
 			if err != nil {
 				fmt.Println("Erro ao organizar inf_diario (versão melhorada):", err)
@@ -89,10 +58,6 @@ func main() {
 		case 8:
 			runDownloadsFIP([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
 			fmt.Println("FIP's baixados com sucesso.")
-			// organizeFIPs([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
-			// fmt.Println("FIP's organizados com sucesso.")
-			// mashFIPs([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
-			// fmt.Println("FIP's consolidados com sucesso.")
 		case 9:
 			startServer2()
 		case 10:
