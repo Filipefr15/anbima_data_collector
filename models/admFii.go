@@ -1,0 +1,45 @@
+package models
+
+type AdmFii struct {
+	TpFundoClasse    string `json:"tp_fundo_classe" db:"tp_fundo_classe"`
+	CnpjFundoClasse  string `json:"cnpj_fundo_classe" db:"cnpj_fundo_classe"`
+	DenomSocial      string `json:"denom_social" db:"denom_social"`
+	DtReg            string `json:"dt_reg" db:"dt_reg"`
+	DtConst          string `json:"dt_const" db:"dt_const"`
+	CdCvm            string `json:"cd_cvm" db:"cd_cvm"`
+	DtCancel         string `json:"dt_cancel" db:"dt_cancel"`
+	Sit              string `json:"sit" db:"sit"`
+	DtIniSit         string `json:"dt_ini_sit" db:"dt_ini_sit"`
+	DtIniAtiv        string `json:"dt_ini_ativ" db:"dt_ini_ativ"`
+	DtIniExerc       string `json:"dt_ini_exerc" db:"dt_ini_exerc"`
+	DtFimExerc       string `json:"dt_fim_exerc" db:"dt_fim_exerc"`
+	Classe           string `json:"classe" db:"classe"`
+	DtIniClasse      string `json:"dt_ini_classe" db:"dt_ini_classe"`
+	RentabFundo      string `json:"rentab_fundo" db:"rentab_fundo"`
+	Condom           string `json:"condom" db:"condom"`
+	FundoCotas       string `json:"fundo_cotas" db:"fundo_cotas"`
+	FundoExclusivo   string `json:"fundo_exclusivo" db:"fundo_exclusivo"`
+	TribLprazo       string `json:"trib_lprazo" db:"trib_lprazo"`
+	PublicoAlvo      string `json:"publico_alvo" db:"publico_alvo"`
+	EntidInvest      string `json:"entid_invest" db:"entid_invest"`
+	TaxaPerfm        string `json:"taxa_perfm" db:"taxa_perfm"`
+	InfTaxaPerfm     string `json:"inf_taxa_perfm" db:"inf_taxa_perfm"`
+	TaxaAdm          string `json:"taxa_adm" db:"taxa_adm"`
+	InfTaxaAdm       string `json:"inf_taxa_adm" db:"inf_taxa_adm"`
+	VlPatrimLiq      string `json:"vl_patrim_liq" db:"vl_patrim_liq"`
+	DtPatrimLiq      string `json:"dt_patrim_liq" db:"dt_patrim_liq"`
+	Diretor          string `json:"diretor" db:"diretor"`
+	CnpjAdmin        string `json:"cnpj_admin" db:"cnpj_admin"`
+	Admin            string `json:"admin" db:"admin"`
+	PfPjGestor       string `json:"pf_pj_gestor" db:"pf_pj_gestor"`
+	CpfCnpjGestor    string `json:"cpf_cnpj_gestor" db:"cpf_cnpj_gestor"`
+	Gestor           string `json:"gestor" db:"gestor"`
+	CnpjAuditor      string `json:"cnpj_auditor" db:"cnpj_auditor"`
+	Auditor          string `json:"auditor" db:"auditor"`
+	CnpjCustodiante  string `json:"cnpj_custodiante" db:"cnpj_custodiante"`
+	Custodiante      string `json:"custodiante" db:"custodiante"`
+	CnpjControlador  string `json:"cnpj_controlador" db:"cnpj_controlador"`
+	Controlador      string `json:"controlador" db:"controlador"`
+	InvestCemprExter string `json:"invest_cempr_exter" db:"invest_cempr_exter"`
+	ClasseAnbima     string `json:"classe_anbima" db:"classe_anbima"`
+}
