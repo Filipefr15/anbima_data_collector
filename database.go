@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -11,6 +12,51 @@ import (
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
+
+func conectaDB() (*sql.DB, error) {
+	err := godotenv.Load(".env")
+	if err != nil {
+		return nil, fmt.Errorf("erro ao carregar arquivo .env: %v", err)
+	}
+
+	host := os.Getenv("HOST")
+	port := os.Getenv("PORT")
+	user := os.Getenv("USER")
+	password := os.Getenv("PASSWORD")
+	dbname := os.Getenv("DATABASE")
+
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	db, err := sql.Open("postgres", connStr)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao abrir conexão com banco de dados: %v", err)
+	}
+
+	if err := db.Ping(); err != nil {
+		db.Close()
+		return nil, fmt.Errorf("erro ao conectar com banco de dados: %v", err)
+	}
+
+	return db, nil
+}
+
+// executarConsulta executa uma consulta SQL genérica a partir de um arquivo
+func executarConsulta(db *sql.DB, arquivoSQL string) (*sql.Rows, error) {
+	// Lê a consulta SQL do arquivo
+	sqlBytes, err := ioutil.ReadFile(arquivoSQL)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao ler arquivo SQL: %v", err)
+	}
+
+	query := strings.TrimSpace(string(sqlBytes))
+
+	// Executa a consulta
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao executar consulta: %v", err)
+	}
+
+	return rows, nil
+}
 
 func database(tableName, csvFile string) {
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"dAndD/models"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -13,7 +15,8 @@ func main() {
 	fmt.Println("4 - Iniciar downloads e descompactação FIDC")
 	fmt.Println("5 - Organizaar FIDC's")
 	fmt.Println("6 - Organizar inf_diario com goroutines (versão melhorada)")
-	fmt.Print("Digite 1, 2, 3, 4, 5 ou 6: ")
+	fmt.Println("7 - Iniciar servidor com dados de AdmFii na porta 8080")
+	fmt.Print("Digite 1, 2, 3, 4, 5, 6 ou 7: ")
 
 	var escolha int
 	_, err := fmt.Scan(&escolha)
@@ -53,32 +56,34 @@ func main() {
 			}
 			fmt.Println("Inf_diario organizado com sucesso (versão melhorada)!")
 		case 7:
+			startServerAdmFii()
+		case 8:
 			csvPadronizationFip([]string{"fip"}, []int{2019, 2020, 2021, 2022, 2023, 2024, 2025})
 			fmt.Println("FIP's padronizados com sucesso.")
-		case 8:
+		case 9:
 			runDownloadsFIP([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
 			fmt.Println("FIP's baixados com sucesso.")
-		case 9:
-			startServer2()
 		case 10:
+			startServer2()
+		case 11:
 			downloadCsvDescompactado([]string{"adm_fii"}, "cad")
 			fmt.Println("Cadastro de administradores de FII baixados com sucesso.")
 			simpleCsvPadronization([]string{"adm_fii"}, []string{""}, "cad", "")
 			fmt.Println("Cadastro de administradores de FII padronizados com sucesso.")
-		case 11:
+		case 12:
 			downloadCsvDescompactado([]string{"fi"}, "cad")
 			fmt.Println("Cadastro de informações de fundos baixados com sucesso.")
 			simpleCsvPadronization([]string{"fi"}, []string{""}, "cad", "")
 			fmt.Println("Cadastro de informações de fundos padronizados com sucesso.")
-		case 12:
+		case 13:
 			downloadCsvCompactado([]string{"fi"}, "cad", "registro_fundo_classe")
 			fmt.Println("Cadastro de informações de fundos (registro_fundo_classe) baixados com sucesso.")
 			simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
-		case 13:
-			runDownloads([]int{2023, 2024, 2025}, []string{"cda"})
 		case 14:
-			csvPadronizationCda()
+			runDownloads([]int{2023, 2024, 2025}, []string{"cda"})
 		case 15:
+			csvPadronizationCda()
+		case 16:
 			// ex:
 			// tableName := "cadastro_adm_fii"
 			// csvFile := "adm_fii_padronized/cad_adm_fii.csv"
@@ -171,4 +176,98 @@ func startServer2() {
 	http.HandleFunc("/searchCda", searchCdaHandler)
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
+}
+
+func startServerAdmFii() {
+	http.HandleFunc("/admfii", admFiiHandler)
+	fmt.Println("Servidor AdmFii iniciado em :8080")
+	fmt.Println("Acesse: http://localhost:8080/admfii")
+	http.ListenAndServe(":8080", nil)
+}
+
+func admFiiHandler(w http.ResponseWriter, r *http.Request) {
+	// Conecta ao banco
+	db, err := conectaDB()
+	if err != nil {
+		http.Error(w, "Erro ao conectar ao banco de dados: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	// Executa a consulta
+	rows, err := executarConsulta(db, "sql/adm_fii.sql")
+	if err != nil {
+		http.Error(w, "Erro ao executar consulta: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Processa os resultados
+	var admFiis []models.AdmFii
+	for rows.Next() {
+		var admFii models.AdmFii
+		err = rows.Scan(
+			&admFii.TpFundoClasse,
+			&admFii.CnpjFundoClasse,
+			&admFii.DenomSocial,
+			&admFii.DtReg,
+			&admFii.DtConst,
+			&admFii.CdCvm,
+			&admFii.DtCancel,
+			&admFii.Sit,
+			&admFii.DtIniSit,
+			&admFii.DtIniAtiv,
+			&admFii.DtIniExerc,
+			&admFii.DtFimExerc,
+			&admFii.Classe,
+			&admFii.DtIniClasse,
+			&admFii.RentabFundo,
+			&admFii.Condom,
+			&admFii.FundoCotas,
+			&admFii.FundoExclusivo,
+			&admFii.TribLprazo,
+			&admFii.PublicoAlvo,
+			&admFii.EntidInvest,
+			&admFii.TaxaPerfm,
+			&admFii.InfTaxaPerfm,
+			&admFii.TaxaAdm,
+			&admFii.InfTaxaAdm,
+			&admFii.VlPatrimLiq,
+			&admFii.DtPatrimLiq,
+			&admFii.Diretor,
+			&admFii.CnpjAdmin,
+			&admFii.Admin,
+			&admFii.PfPjGestor,
+			&admFii.CpfCnpjGestor,
+			&admFii.Gestor,
+			&admFii.CnpjAuditor,
+			&admFii.Auditor,
+			&admFii.CnpjCustodiante,
+			&admFii.Custodiante,
+			&admFii.CnpjControlador,
+			&admFii.Controlador,
+			&admFii.InvestCemprExter,
+			&admFii.ClasseAnbima,
+		)
+		if err != nil {
+			http.Error(w, "Erro ao fazer scan dos dados: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		admFiis = append(admFiis, admFii)
+	}
+
+	if err = rows.Err(); err != nil {
+		http.Error(w, "Erro durante iteração das linhas: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Configura o header para JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Codifica e retorna o JSON
+	if err := json.NewEncoder(w).Encode(admFiis); err != nil {
+		http.Error(w, "Erro ao codificar JSON: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
