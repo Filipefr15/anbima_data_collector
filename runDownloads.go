@@ -23,7 +23,7 @@ func runDownloads(anos []int, objetoBuscado []string) {
 			for mes := 12; mes >= 1; mes-- {
 				url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/%s/DADOS/%s_fi_%d%02d.zip", objeto, objeto, ano, mes)
 				output := fmt.Sprintf("%s_fi_%d%02d.zip", objeto, ano, mes)
-				dest := objeto
+				dest := "csvs/" + objeto
 
 				jobs = append(jobs, Job{
 					ano:  ano,
@@ -90,7 +90,7 @@ func runDownloadsFIDC(anos []int, objetoBuscado []string) {
 			for mes := 12; mes >= 1; mes-- {
 				url := fmt.Sprintf("https://dados.cvm.gov.br/dados/%s/DOC/INF_MENSAL/DADOS/inf_mensal_%s_%d%02d.zip", objeto, objeto, ano, mes)
 				output := fmt.Sprintf("%s_fi_%d%02d.zip", objeto, ano, mes)
-				dest := objeto
+				dest := "csvs/" + objeto
 
 				jobs = append(jobs, Job{
 					ano:  ano,
@@ -155,7 +155,7 @@ func runDownloadsFIP(anos []int, objetoBuscado []string) {
 			}
 			url := fmt.Sprintf("https://dados.cvm.gov.br/dados/%s/DOC/%s/DADOS/%s_%s_%d.csv", objeto, periodicidade_informe, periodicidade_informe, objeto, ano)
 			output := fmt.Sprintf("%s_%s_%d.csv", periodicidade_informe, objeto, ano)
-			dest := objeto
+			dest := "csvs/" + objeto
 
 			jobs = append(jobs, Job{
 				ano:  ano,
@@ -242,7 +242,7 @@ func downloadCsvDescompactado(tabs []string, cadOuDoc string) {
 	for _, tab := range tabs {
 		url := fmt.Sprintf("https://dados.cvm.gov.br/dados/%s/%s/DADOS/%s_%s.csv", tab, cadOuDoc, cadOuDoc, tab)
 		output := fmt.Sprintf("%s_%s.csv", cadOuDoc, tab)
-		dest := tab
+		dest := "csvs/" + tab
 
 		jobs = append(jobs, Job{
 			ano:  0000,
@@ -309,7 +309,7 @@ func downloadCsvCompactado(tabs []string, cadOuDoc string, aux string) {
 	for _, tab := range tabs {
 		url := fmt.Sprintf("https://dados.cvm.gov.br/dados/%s/%s/DADOS/%s.zip", tab, cadOuDoc, aux)
 		output := fmt.Sprintf("%s.zip", aux)
-		dest := tab
+		dest := "csvs/" + tab
 
 		jobs = append(jobs, Job{
 			ano:  0000,
