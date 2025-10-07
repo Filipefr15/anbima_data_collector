@@ -26,7 +26,7 @@ func csvPadronizationFidc(tabs []string, anos, meses []int) error {
 			var wg sync.WaitGroup
 
 			for _, mes := range meses {
-				arquivo := fmt.Sprintf("fidc/inf_mensal_fidc_tab%s%d%02d.csv", tab, ano, mes)
+				arquivo := fmt.Sprintf("csvs/fidc/inf_mensal_fidc_tab%s%d%02d.csv", tab, ano, mes)
 				if _, err := os.Stat(arquivo); err != nil {
 					continue
 				}
@@ -163,7 +163,7 @@ func csvPadronizationFidc(tabs []string, anos, meses []int) error {
 						}
 
 						os.MkdirAll("fidc_padronized", os.ModePerm)
-						outFileName := fmt.Sprintf("fidc_padronized/inf_mensal_fidc_tab%s%d%02d.csv", tab, ano, mes)
+						outFileName := fmt.Sprintf("csvs/fidc_padronized/inf_mensal_fidc_tab%s%d%02d.csv", tab, ano, mes)
 						outFile, err := os.Create(outFileName)
 						if err != nil {
 							fmt.Printf("Erro ao criar arquivo %s: %v\n", outFileName, err)
@@ -193,7 +193,7 @@ func csvPadronizationFip(tabs []string, anos []int) error {
 			// dfCh := make(chan dataframe.DataFrame)
 			var wg sync.WaitGroup
 
-			arquivo := fmt.Sprintf("%s/inf_tri_quadri_%s_%d.csv", tab, tab, ano)
+			arquivo := fmt.Sprintf("csvs/%s/inf_tri_quadri_%s_%d.csv", tab, tab, ano)
 			if _, err := os.Stat(arquivo); err != nil {
 				continue
 			}
@@ -323,7 +323,7 @@ func csvPadronizationFip(tabs []string, anos []int) error {
 					}
 
 					os.MkdirAll(fmt.Sprintf("%s_padronized", tab), os.ModePerm)
-					outFileName := fmt.Sprintf("%s_padronized/inf_tri_quadri_%s_%d_.csv", tab, tab, ano)
+					outFileName := fmt.Sprintf("csvs/%s_padronized/inf_tri_quadri_%s_%d_.csv", tab, tab, ano)
 					outFile, err := os.Create(outFileName)
 					if err != nil {
 						fmt.Printf("Erro ao criar arquivo %s: %v\n", outFileName, err)
@@ -354,7 +354,7 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 			var wg sync.WaitGroup
 
 			for _, mes := range meses {
-				arquivo := fmt.Sprintf("lamina/lamina_fi%s%d%02d.csv", tab, ano, mes)
+				arquivo := fmt.Sprintf("csvs/lamina/lamina_fi%s%d%02d.csv", tab, ano, mes)
 				if _, err := os.Stat(arquivo); err != nil {
 					continue
 				}
@@ -491,7 +491,7 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 						}
 
 						os.MkdirAll("lamina_padronized", os.ModePerm)
-						outFileName := fmt.Sprintf("lamina_padronized/lamina_fi%s%d%02d.csv", tab, ano, mes)
+						outFileName := fmt.Sprintf("csvs/lamina_padronized/lamina_fi%s%d%02d.csv", tab, ano, mes)
 						outFile, err := os.Create(outFileName)
 						if err != nil {
 							fmt.Printf("Erro ao criar arquivo %s: %v\n", outFileName, err)
@@ -516,7 +516,7 @@ func csvPadronizationCda() error {
 	const maxGoroutines = 4
 	sem := make(chan struct{}, maxGoroutines)
 
-	dir := "cda"
+	dir := "csvs/cda"
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("erro ao ler diretório %s: %v", dir, err)
@@ -699,7 +699,7 @@ func csvPadronizationInfDiario(anos, meses []int) error {
 		var wg sync.WaitGroup
 
 		for _, mes := range meses {
-			arquivo := fmt.Sprintf("inf_diario/inf_diario_fi_%d%02d.csv", ano, mes)
+			arquivo := fmt.Sprintf("csvs/inf_diario/inf_diario_fi_%d%02d.csv", ano, mes)
 			if _, err := os.Stat(arquivo); err != nil {
 				continue
 			}
@@ -836,7 +836,7 @@ func csvPadronizationInfDiario(anos, meses []int) error {
 					}
 
 					os.MkdirAll("inf_diario_padronized", os.ModePerm)
-					outFileName := fmt.Sprintf("inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
+					outFileName := fmt.Sprintf("csvs/inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
 					outFile, err := os.Create(outFileName)
 					if err != nil {
 						fmt.Printf("Erro ao criar arquivo %s: %v\n", outFileName, err)
@@ -864,7 +864,7 @@ func pickLastDayOfMonthInfDiario(anos, meses []int) error {
 		var wg sync.WaitGroup
 
 		for _, mes := range meses {
-			arquivo := fmt.Sprintf("inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
+			arquivo := fmt.Sprintf("csvs/inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
 			if _, err := os.Stat(arquivo); err != nil {
 				continue
 			}
@@ -909,7 +909,7 @@ func pickLastDayOfMonthInfDiario(anos, meses []int) error {
 				}
 				df = df.Subset(lastRows)
 				os.MkdirAll("inf_diario_ultimos_dias", os.ModePerm)
-				outFileName := fmt.Sprintf("inf_diario_ultimos_dias/inf_diario_fi_%d%02d.csv", ano, mes)
+				outFileName := fmt.Sprintf("csvs/inf_diario_ultimos_dias/inf_diario_fi_%d%02d.csv", ano, mes)
 				outFile, err := os.Create(outFileName)
 				if err != nil {
 					fmt.Println(err)
@@ -942,12 +942,12 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 
 			arquivo := ""
 			if prefix != "" {
-				arquivo = fmt.Sprintf("%s/%s_%s.csv", tab, prefix, aux)
+				arquivo = fmt.Sprintf("csvs/%s/%s_%s.csv", tab, prefix, aux)
 				if _, err := os.Stat(arquivo); err != nil {
 					continue
 				}
 			} else {
-				arquivo = fmt.Sprintf("%s/%s_%s.csv", tab, cadOuDoc, tab)
+				arquivo = fmt.Sprintf("csvs/%s/%s_%s.csv", tab, cadOuDoc, tab)
 				if _, err := os.Stat(arquivo); err != nil {
 					continue
 				}
@@ -1101,9 +1101,9 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 			}
 			os.MkdirAll(fmt.Sprintf("%s_padronized", tab), os.ModePerm)
 
-			outFileName := fmt.Sprintf("%s_padronized/%s_%s.csv", tab, cadOuDoc, tab)
+			outFileName := fmt.Sprintf("csvs/%s_padronized/%s_%s.csv", tab, cadOuDoc, tab)
 			if prefix != "" {
-				outFileName = fmt.Sprintf("%s_padronized/%s_%s.csv", tab, prefix, aux)
+				outFileName = fmt.Sprintf("csvs/%s_padronized/%s_%s.csv", tab, prefix, aux)
 			}
 
 			outFile, err := os.Create(outFileName)

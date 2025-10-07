@@ -92,7 +92,7 @@ func main() {
 			// database("cadastro_fi", "fi_padronized/cad_fi.csv")
 			//database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
 			//database("registro_classe", "fi_padronized/registro_classe.csv")
-			database("registro_fundo", "fi_padronized/registro_fundo.csv")
+			database("registro_fundo", "csvs/fi_padronized/registro_fundo.csv")
 			//database("registro_subclasse", "fi_padronized/registro_subclasse.csv")
 			//database("lamina_rentab_ano", "lamina_padronized/lamina_fi_rentab_ano_202508.csv")
 

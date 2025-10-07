@@ -32,7 +32,7 @@ func normalizeCNPJ(cnpj string) string {
 }
 
 func loadInfoDiarioCache() error {
-	dir := "inf_diario_ultimos_dias"
+	dir := "csvs/inf_diario_ultimos_dias"
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("erro ao ler diretório: %w", err)
@@ -186,7 +186,7 @@ func loadFIDCCache() error {
 	fidcCOTACache = make(map[string][]InfoFIDCCOTA)
 	fidcRENTCache = make(map[string][]InfoFIDCRENT)
 
-	dir := "fidc_padronized"
+	dir := "csvs/fidc_padronized"
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("erro ao ler diretório: %w", err)
@@ -692,7 +692,7 @@ func loadLaminaCache(anos []int) error {
 	// lamina_final_carteira_.csv
 	for _, ano := range anos {
 		for _, mes := range meses {
-			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_carteira_%d%02d.csv", ano, mes)); err == nil {
+			if f, err := os.Open(fmt.Sprintf("csvs/lamina_padronized/lamina_fi_carteira_%d%02d.csv", ano, mes)); err == nil {
 				reader := csv.NewReader(f)
 				reader.FieldsPerRecord = -1
 				records, err := reader.ReadAll()
@@ -717,7 +717,7 @@ func loadLaminaCache(anos []int) error {
 	// lamina_final_rentab_ano_.csv
 	for _, ano := range anos {
 		for _, mes := range meses {
-			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_rentab_ano_%d%02d.csv", ano, mes)); err == nil {
+			if f, err := os.Open(fmt.Sprintf("csvs/lamina_padronized/lamina_fi_rentab_ano_%d%02d.csv", ano, mes)); err == nil {
 				reader := csv.NewReader(f)
 				reader.FieldsPerRecord = -1
 				records, err := reader.ReadAll()
@@ -743,7 +743,7 @@ func loadLaminaCache(anos []int) error {
 	// lamina_final_rentab_mes_.csv
 	for _, ano := range anos {
 		for _, mes := range meses {
-			if f, err := os.Open(fmt.Sprintf("lamina_padronized/lamina_fi_rentab_mes_%d%02d.csv", ano, mes)); err == nil {
+			if f, err := os.Open(fmt.Sprintf("csvs/lamina_padronized/lamina_fi_rentab_mes_%d%02d.csv", ano, mes)); err == nil {
 				reader := csv.NewReader(f)
 				reader.FieldsPerRecord = -1
 				records, err := reader.ReadAll()
@@ -1022,7 +1022,7 @@ var fipCacheLoaded bool
 var fipCacheMutex sync.RWMutex
 
 func loadFipCache() error {
-	dir := "fip_padronized"
+	dir := "csvs/fip_padronized"
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return fmt.Errorf("erro ao ler diretório: %w", err)
@@ -1176,7 +1176,7 @@ func loadCdaCache() error {
 	cacheCdaBlc8 = make(map[string][]InfoCdaBlc8)
 	cacheCdaPL = make(map[string][]InfoCdaPL)
 	cacheCdaFiim = make(map[string][]InfoCdaFiim)
-	dir := "cda_padronized"
+	dir := "csvs/cda_padronized"
 	files, err := os.ReadDir(dir)
 	if err != nil {
 		return err
