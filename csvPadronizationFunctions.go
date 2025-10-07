@@ -162,7 +162,7 @@ func csvPadronizationFidc(tabs []string, anos, meses []int) error {
 							df = df.Mutate(newCol)
 						}
 
-						os.MkdirAll("fidc_padronized", os.ModePerm)
+						os.MkdirAll("csvs/fidc_padronized", os.ModePerm)
 						outFileName := fmt.Sprintf("csvs/fidc_padronized/inf_mensal_fidc_tab%s%d%02d.csv", tab, ano, mes)
 						outFile, err := os.Create(outFileName)
 						if err != nil {
@@ -322,7 +322,7 @@ func csvPadronizationFip(tabs []string, anos []int) error {
 						df = df.Mutate(newCol)
 					}
 
-					os.MkdirAll(fmt.Sprintf("%s_padronized", tab), os.ModePerm)
+					os.MkdirAll(fmt.Sprintf("csvs/%s_padronized", tab), os.ModePerm)
 					outFileName := fmt.Sprintf("csvs/%s_padronized/inf_tri_quadri_%s_%d_.csv", tab, tab, ano)
 					outFile, err := os.Create(outFileName)
 					if err != nil {
@@ -490,7 +490,7 @@ func csvPadronizationLamina(tabs []string, anos, meses []int) error {
 							df = df.Mutate(newCol)
 						}
 
-						os.MkdirAll("lamina_padronized", os.ModePerm)
+						os.MkdirAll("csvs/lamina_padronized", os.ModePerm)
 						outFileName := fmt.Sprintf("csvs/lamina_padronized/lamina_fi%s%d%02d.csv", tab, ano, mes)
 						outFile, err := os.Create(outFileName)
 						if err != nil {
@@ -667,7 +667,7 @@ func csvPadronizationCda() error {
 					df = df.Mutate(newCol)
 				}
 
-				os.MkdirAll("cda_padronized", os.ModePerm)
+				os.MkdirAll("csvs/cda_padronized", os.ModePerm)
 				outFileName := dir + "_padronized" + "/" + file.Name()
 				outFile, err := os.Create(outFileName)
 				if err != nil {
@@ -835,7 +835,7 @@ func csvPadronizationInfDiario(anos, meses []int) error {
 						df = df.Mutate(newCol)
 					}
 
-					os.MkdirAll("inf_diario_padronized", os.ModePerm)
+					os.MkdirAll("csvs/inf_diario_padronized", os.ModePerm)
 					outFileName := fmt.Sprintf("csvs/inf_diario_padronized/inf_diario_fi_%d%02d.csv", ano, mes)
 					outFile, err := os.Create(outFileName)
 					if err != nil {
@@ -908,7 +908,7 @@ func pickLastDayOfMonthInfDiario(anos, meses []int) error {
 					lastRows = append(lastRows, idx)
 				}
 				df = df.Subset(lastRows)
-				os.MkdirAll("inf_diario_ultimos_dias", os.ModePerm)
+				os.MkdirAll("csvs/inf_diario_ultimos_dias", os.ModePerm)
 				outFileName := fmt.Sprintf("csvs/inf_diario_ultimos_dias/inf_diario_fi_%d%02d.csv", ano, mes)
 				outFile, err := os.Create(outFileName)
 				if err != nil {
@@ -1099,7 +1099,7 @@ func simpleCsvPadronization(tabs, auxs []string, cadOuDoc, prefix string) error 
 				fmt.Printf("Nenhum dado encontrado para o ano %s\n", tabs)
 				continue
 			}
-			os.MkdirAll(fmt.Sprintf("%s_padronized", tab), os.ModePerm)
+			os.MkdirAll(fmt.Sprintf("csvs/%s_padronized", tab), os.ModePerm)
 
 			outFileName := fmt.Sprintf("csvs/%s_padronized/%s_%s.csv", tab, cadOuDoc, tab)
 			if prefix != "" {

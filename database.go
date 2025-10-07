@@ -160,10 +160,10 @@ func createTableFromCSV(db *sql.DB, csvFile, tableName string) error {
 	}
 
 	// Dropa a tabela se existir
-	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
-	if err != nil {
-		return err
-	}
+	// _, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Constrói o CREATE TABLE
 	var columns []string
@@ -182,7 +182,7 @@ func createTableFromCSV(db *sql.DB, csvFile, tableName string) error {
 
 	_, err = db.Exec(createSQL)
 	if err != nil {
-		return fmt.Errorf("erro ao criar tabela: %w", err)
+		fmt.Println("erro ao criar tabela: %w - continuando mesmo assim", err)
 	}
 
 	fmt.Printf("✓ Tabela '%s' criada com %d colunas\n", tableName, len(header))

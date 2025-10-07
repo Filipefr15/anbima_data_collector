@@ -33,10 +33,26 @@ func main() {
 			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
 			fmt.Println("Lâminas baixadas com sucesso.")
 		case 2:
-			csvPadronizationInfDiario([]int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+			runDownloads([]int{2025}, []string{"inf_diario"})
+			fmt.Println("Informes diários baixados com sucesso.")
+			csvPadronizationInfDiario([]int{2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 			fmt.Println("Inf_diario organizado com sucesso!")
-			pickLastDayOfMonthInfDiario([]int{2021, 2022, 2023, 2024, 2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+			pickLastDayOfMonthInfDiario([]int{2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 			fmt.Println("Último dia de cada mês selecionado com sucesso!")
+
+			for anoMes := 202509; anoMes >= 202509; {
+				database("inf_diario_ultimos_dias", fmt.Sprintf("csvs/inf_diario_ultimos_dias/inf_diario_fi_%d.csv", anoMes))
+				// decrementa anoMes corretamente
+				mes := anoMes % 100
+				ano := anoMes / 100
+				if mes == 1 {
+					ano--
+					mes = 12
+				} else {
+					mes--
+				}
+				anoMes = ano*100 + mes
+			}
 		case 3:
 			startServer()
 		case 4:
