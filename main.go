@@ -56,7 +56,8 @@ func main() {
 			}
 			fmt.Println("Inf_diario organizado com sucesso (versão melhorada)!")
 		case 7:
-			startServerAdmFii()
+			//startServerAdmFii()
+			startServerRegistroFundo()
 		case 8:
 			csvPadronizationFip([]string{"fip"}, []int{2019, 2020, 2021, 2022, 2023, 2024, 2025})
 			fmt.Println("FIP's padronizados com sucesso.")
@@ -87,11 +88,11 @@ func main() {
 			// ex:
 			// tableName := "cadastro_adm_fii"
 			// csvFile := "adm_fii_padronized/cad_adm_fii.csv"
-			database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
-			database("cadastro_fi", "fi_padronized/cad_fi.csv")
+			// database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
+			// database("cadastro_fi", "fi_padronized/cad_fi.csv")
 			//database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
 			//database("registro_classe", "fi_padronized/registro_classe.csv")
-			//database("registro_fundo", "fi_padronized/registro_fundo.csv")
+			database("registro_fundo", "fi_padronized/registro_fundo.csv")
 			//database("registro_subclasse", "fi_padronized/registro_subclasse.csv")
 			//database("lamina_rentab_ano", "lamina_padronized/lamina_fi_rentab_ano_202508.csv")
 
@@ -183,6 +184,79 @@ func startServerAdmFii() {
 	fmt.Println("Servidor AdmFii iniciado em :8080")
 	fmt.Println("Acesse: http://localhost:8080/admfii")
 	http.ListenAndServe(":8080", nil)
+}
+
+func startServerRegistroFundo() {
+	http.HandleFunc("/registrofundo", registroFundoHandler)
+	fmt.Println("Servidor RegistroFundo iniciado em :8080")
+	fmt.Println("Acesse: http://localhost:8080/registrofundo")
+	http.ListenAndServe(":8080", nil)
+}
+
+func registroFundoHandler(w http.ResponseWriter, r *http.Request) {
+	// Conecta ao banco
+	db, err := conectaDB()
+	if err != nil {
+		http.Error(w, "Erro ao conectar ao banco de dados: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	// Executa a consulta
+	rows, err := executarConsulta(db, "sql/registro_fundo.sql")
+	if err != nil {
+		http.Error(w, "Erro ao executar consulta: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	// Processa os resultados
+	var fundos []models.RegistroFundo
+	for rows.Next() {
+		var fundo models.RegistroFundo
+		err = rows.Scan(
+			&fundo.IdRegistroFundo,
+			&fundo.CNPJFundo,
+			&fundo.CodigoCVM,
+			&fundo.DataRegistro,
+			&fundo.DataConstituicao,
+			&fundo.TipoFundo,
+			&fundo.DenominacaoSocial,
+			&fundo.DataCancelamento,
+			&fundo.Situacao,
+			&fundo.DataInicioSituacao,
+			&fundo.DataAdaptacaoRCVM175,
+			&fundo.DataInicioExercicio,
+			&fundo.DataFimExercicio,
+			&fundo.PatrimonioLiquido,
+			&fundo.DataPatrimonioLiquido,
+			&fundo.Diretor,
+			&fundo.CNPJAdministrador,
+			&fundo.Administrador,
+			&fundo.TipoPessoaGestor,
+			&fundo.CPFCNPJGestor,
+			&fundo.Gestor,
+		)
+		if err != nil {
+			http.Error(w, "Erro ao fazer scan dos dados: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		fundos = append(fundos, fundo)
+	}
+
+	if err = rows.Err(); err != nil {
+		http.Error(w, "Erro durante iteração das linhas: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Configura o header para JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Codifica e retorna o JSON
+	if err := json.NewEncoder(w).Encode(fundos); err != nil {
+		http.Error(w, "Erro ao codificar JSON: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func admFiiHandler(w http.ResponseWriter, r *http.Request) {

@@ -66,20 +66,20 @@ func database(tableName, csvFile string) {
 	port := os.Getenv("PORT")
 	user := os.Getenv("USER")
 	password := os.Getenv("PASSWORD")
-	dbname := os.Getenv("DATABASE")
+	dbName := os.Getenv("DATABASE")
 	// Configuração inicial (conecta ao banco postgres padrão)
 	//adminConnStr := "host=localhost port=5432 user=postgres password=123456 dbname=postgres sslmode=disable"
 	// dbName := "anbimainfo"
 	// tableName := "cadastro_adm_fii"
 	// csvFile := "adm_fii_padronized/cad_adm_fii.csv"
 
-	// // 1. Cria o banco de dados se não existir
-	// if err := createDatabase(adminConnStr, dbName); err != nil {
-	// 	log.Fatal(err)
-	// }
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
+	// 1. Cria o banco de dados se não existir
+	if err := createDatabase(connStr, dbName); err != nil {
+		log.Fatal(err)
+	}
 
 	// 2. Conecta ao banco criado
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)

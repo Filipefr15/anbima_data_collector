@@ -1,0 +1,1 @@
+select * from registro_fundo where situacao = 'Em Funcionamento Normal'
