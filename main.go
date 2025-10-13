@@ -108,34 +108,45 @@ func main() {
 			// database("cadastro_fi", "fi_padronized/cad_fi.csv")
 			//database("cadastro_adm_fii", "adm_fii_padronized/cad_adm_fii.csv")
 			//database("registro_classe", "fi_padronized/registro_classe.csv")
-			database("registro_fundo", "csvs/fi_padronized/registro_fundo.csv")
+			//database("registro_fundo", "csvs/fi_padronized/registro_fundo.csv")
 			// Adiciona todos os arquivos de csvs/cda_padronized no banco, nomeando pelo prefixo do arquivo
-			for ano := 2021; ano <= 2025; ano++ {
-				for mes := 1; mes <= 12; mes++ {
-					anoMes := fmt.Sprintf("%04d%02d", ano, mes)
-					arquivos := []string{
-						fmt.Sprintf("csvs/cda_padronized/cda_%s.csv", anoMes),
-						fmt.Sprintf("csvs/cda_padronized/cda_fi_%s.csv", anoMes),
-						fmt.Sprintf("csvs/cda_padronized/cda_fidc_%s.csv", anoMes),
-						fmt.Sprintf("csvs/cda_padronized/cda_fip_%s.csv", anoMes),
-					}
-					for _, arquivo := range arquivos {
-						// Extrai o nome do banco do prefixo do arquivo
-						var tableName string
-						if idx := len("csvs/cda_padronized/"); len(arquivo) > idx {
-							rest := arquivo[idx:]
-							if i := len(rest); i > 0 {
-								// pega até o primeiro "_AAAA" (ano)
-								for j := 0; j < i; j++ {
-									if rest[j] == '_' && j+5 < i && rest[j+1] >= '0' && rest[j+1] <= '9' {
-										tableName = rest[:j]
-										break
+			prefixos := []string{
+				// "cda_fi_BLC_1",
+				// "cda_fi_BLC_2",
+				// "cda_fi_BLC_3",
+				// "cda_fi_BLC_4",
+				// "cda_fi_BLC_5",
+				// "cda_fi_BLC_6",
+				"cda_fi_BLC_7",
+				"cda_fi_BLC_8",
+				"cda_fi_PL",
+				"cda_fiim",
+			}
+			for _, prefixo := range prefixos {
+				for ano := 2025; ano <= 2025; ano++ {
+					for mes := 8; mes <= 8; mes++ {
+						anoMes := fmt.Sprintf("%04d%02d", ano, mes)
+						arquivos := []string{
+							fmt.Sprintf("csvs/cda_padronized/%s_%s.csv", prefixo, anoMes),
+						}
+						for _, arquivo := range arquivos {
+							// Extrai o nome do banco do prefixo do arquivo
+							var tableName string
+							if idx := len("csvs/cda_padronized/"); len(arquivo) > idx {
+								rest := arquivo[idx:]
+								if i := len(rest); i > 0 {
+									// pega até o primeiro "_AAAA" (ano)
+									for j := 0; j < i; j++ {
+										if rest[j] == '_' && j+5 < i && rest[j+1] >= '0' && rest[j+1] <= '9' {
+											tableName = rest[:j]
+											break
+										}
 									}
 								}
 							}
-						}
-						if tableName != "" {
-							database(tableName, arquivo)
+							if tableName != "" {
+								database(prefixo, arquivo)
+							}
 						}
 					}
 				}
