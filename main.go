@@ -7,6 +7,25 @@ import (
 	"net/http"
 )
 
+// corsMiddleware adiciona headers CORS para aceitar requisições de qualquer origem
+func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Define headers CORS
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight requests
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		// Chama o próximo handler
+		next(w, r)
+	}
+}
+
 func main() {
 	fmt.Println("Selecione uma opção:")
 	fmt.Println("1 - Iniciar downloads e descompactação")
@@ -27,6 +46,7 @@ func main() {
 
 	for {
 		switch escolha {
+		// ...existing code...
 		case 1:
 			runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
 			fmt.Println("Informes diários baixados com sucesso.")
@@ -167,6 +187,9 @@ func main() {
 			// 	}
 			// 	anoMes = ano*100 + mes
 			// }
+		case 17:
+			// database("cadastro_adm_fii", "csvs/adm_fii_padronized/cad_adm_fii.csv")
+			startServerAdmFii()
 		case 0:
 			fmt.Println("Saindo...")
 			return
@@ -192,28 +215,18 @@ func main() {
 }
 
 func startServer() {
-	// err := loadInfoDiarioCache()
-	// if err != nil {
-	// 	fmt.Println("Erro ao carregar cache:", err)
-	// 	return
-	// }
-
+	// ...existing code...
 	err := loadFIDCCache()
 	if err != nil {
 		fmt.Println("Erro ao carregar cache FIDC:", err)
 		return
 	}
 
-	// err := loadLaminaCache([]int{2020, 2021, 2022, 2023, 2024, 2025})
-	// if err != nil {
-	// 	fmt.Println("Erro ao carregar cache Lâminas:", err)
-	// 	return
-	// }
-
-	http.HandleFunc("/searchInfo", searchInfoHandler)
+	// Aplica CORS middleware aos handlers
+	http.HandleFunc("/searchInfo", corsMiddleware(searchInfoHandler))
 	fmt.Println("search info carregado")
-	http.HandleFunc("/searchFIDC", searchFIDCHandler)
-	http.HandleFunc("/searchLamina", searchLaminaHandler)
+	http.HandleFunc("/searchFIDC", corsMiddleware(searchFIDCHandler))
+	http.HandleFunc("/searchLamina", corsMiddleware(searchLaminaHandler))
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
 }
@@ -231,21 +244,25 @@ func startServer2() {
 		return
 	}
 
-	http.HandleFunc("/searchFip", searchFipHandler)
-	http.HandleFunc("/searchCda", searchCdaHandler)
+	// Aplica CORS middleware aos handlers
+	http.HandleFunc("/searchFip", corsMiddleware(searchFipHandler))
+	http.HandleFunc("/searchCda", corsMiddleware(searchCdaHandler))
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
 }
 
 func startServerAdmFii() {
-	http.HandleFunc("/admfii", admFiiHandler)
+	// Aplica CORS middleware ao handler
+	http.HandleFunc("/admfii", corsMiddleware(admFiiHandler))
 	fmt.Println("Servidor AdmFii iniciado em :8080")
 	fmt.Println("Acesse: http://localhost:8080/admfii")
 	http.ListenAndServe(":8080", nil)
 }
 
 func startServerRegistroFundo() {
-	http.HandleFunc("/registrofundo", registroFundoHandler)
+	// Aplica CORS middleware ao handler
+	// database("registro_fundo", "csvs/fi_padronized/registro_fundo.csv")
+	http.HandleFunc("/registrofundo", corsMiddleware(registroFundoHandler))
 	fmt.Println("Servidor RegistroFundo iniciado em :8080")
 	fmt.Println("Acesse: http://localhost:8080/registrofundo")
 	http.ListenAndServe(":8080", nil)
