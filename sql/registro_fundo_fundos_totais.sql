@@ -1,0 +1,1 @@
+select count(*) from registro_fundo

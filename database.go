@@ -58,6 +58,25 @@ func executarConsulta(db *sql.DB, arquivoSQL string) (*sql.Rows, error) {
 	return rows, nil
 }
 
+func executarConsultaWithOneParam(db *sql.DB, arquivoSQL string, varName, param string) (*sql.Rows, error) {
+	// Lê a consulta SQL do arquivo
+	sqlBytes, err := ioutil.ReadFile(arquivoSQL)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao ler arquivo SQL: %v", err)
+	}
+
+	query := strings.TrimSpace(string(sqlBytes))
+	query = strings.Replace(query, ":sit", param, 1)
+
+	// Executa a consulta
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao executar consulta: %v", err)
+	}
+
+	return rows, nil
+}
+
 func database(tableName, csvFile string) {
 
 	godotenv.Load(".env")
