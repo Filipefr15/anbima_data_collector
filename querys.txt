@@ -1,8 +1,9 @@
+ALTER TABLE inf_diario_ultimos_dias
+ADD COLUMN dia INT,
+ADD COLUMN mes INT,
+ADD COLUMN ano INT;
 
-select inf.cnpj_fundo_classe AS cnpj,
-		inf.vl_patrim_liq,
-		reg.denominacao_social
-		FROM registro_fundo reg
-		JOIN inf_diario_ultimos_dias inf
-		ON inf.cnpj_fundo_classe = reg.cnpj_fundo
-		order by inf.vl_patrim_liq desc
+UPDATE inf_diario_ultimos_dias
+SET dia = EXTRACT(DAY FROM dt_comptc)::INT,
+    mes = EXTRACT(MONTH FROM dt_comptc)::INT,
+    ano = EXTRACT(YEAR FROM dt_comptc)::INT;
