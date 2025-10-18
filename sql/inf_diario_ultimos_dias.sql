@@ -1,0 +1,1 @@
+select * from inf_diario_ultimos_dias
