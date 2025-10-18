@@ -1,9 +1,9 @@
 ALTER TABLE inf_diario_ultimos_dias
-ADD COLUMN dia INT,
-ADD COLUMN mes INT,
-ADD COLUMN ano INT;
+ADD COLUMN dia TEXT,
+ADD COLUMN mes TEXT,
+ADD COLUMN ano TEXT;
 
 UPDATE inf_diario_ultimos_dias
-SET dia = EXTRACT(DAY FROM dt_comptc)::INT,
-    mes = EXTRACT(MONTH FROM dt_comptc)::INT,
-    ano = EXTRACT(YEAR FROM dt_comptc)::INT;
+SET dia = EXTRACT(DAY FROM dt_comptc)::TEXT,
+    mes = EXTRACT(MONTH FROM dt_comptc)::TEXT,
+    ano = EXTRACT(YEAR FROM dt_comptc)::TEXT;
