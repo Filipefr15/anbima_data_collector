@@ -77,6 +77,33 @@ func executarConsultaWithOneParam(db *sql.DB, arquivoSQL string, varName, param 
 	return rows, nil
 }
 
+func executarConsultaWithParams(db *sql.DB, arquivoSQL string, params map[string]string, noParams bool) (*sql.Rows, error) {
+	// Lê a consulta SQL do arquivo
+	sqlBytes, err := ioutil.ReadFile(arquivoSQL)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao ler arquivo SQL: %v", err)
+	}
+
+	query := strings.TrimSpace(string(sqlBytes))
+	if noParams {
+		query += " WHERE "
+		for key, value := range params {
+			if value != "" {
+				query += fmt.Sprintf(" %s = '%s' AND", key, value)
+			}
+		}
+		query = strings.TrimSuffix(query, " AND")
+	}
+
+	// Executa a consulta
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("erro ao executar consulta: %v", err)
+	}
+
+	return rows, nil
+}
+
 func database(tableName, csvFile string) {
 
 	godotenv.Load(".env")
