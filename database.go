@@ -65,8 +65,10 @@ func executarConsultaWithOneParam(db *sql.DB, arquivoSQL string, varName, param 
 		return nil, fmt.Errorf("erro ao ler arquivo SQL: %v", err)
 	}
 
+	varName = ":" + varName
+
 	query := strings.TrimSpace(string(sqlBytes))
-	query = strings.Replace(query, ":sit", param, 1)
+	query = strings.Replace(query, varName, param, 1)
 
 	// Executa a consulta
 	rows, err := db.Query(query)

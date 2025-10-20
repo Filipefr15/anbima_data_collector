@@ -270,6 +270,7 @@ func startServerRegistroFundo() {
 	http.HandleFunc("/dashboard/registrofundo/top10Fundos", corsMiddleware(registroFundoTop10FundosHandler))
 	http.HandleFunc("/dashboard/registrofundo/distsit", corsMiddleware(registroFundoDistSitHandler))
 	http.HandleFunc("/dashboard/registrofundo/timeline", corsMiddleware(registroFundoTimelineAberturaFundosHandler))
+	http.HandleFunc("/registrofundo/nomefundo", corsMiddleware(registroFundoNomeFundoHandler))
 	http.HandleFunc("/infdiarioultimosdias", corsMiddleware(infDiarioUltimosDiasFundosHandler))
 	fmt.Println("Servidor RegistroFundo iniciado em :8080")
 	fmt.Println("Acesse: http://localhost:8080/registrofundo")
@@ -682,6 +683,59 @@ func registroFundoTimelineAberturaFundosHandler(w http.ResponseWriter, r *http.R
 		err = rows.Scan(
 			&fundo.Periodo,
 			&fundo.Quantidade,
+		)
+		if err != nil {
+			http.Error(w, "Erro ao fazer scan dos dados: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		fundos = append(fundos, fundo)
+	}
+
+	if err = rows.Err(); err != nil {
+		http.Error(w, "Erro durante iteração das linhas: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Configura o header para JSON
+	w.Header().Set("Content-Type", "application/json")
+
+	// Codifica e retorna o JSON
+	if err := json.NewEncoder(w).Encode(fundos); err != nil {
+		http.Error(w, "Erro ao codificar JSON: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func registroFundoNomeFundoHandler(w http.ResponseWriter, r *http.Request) {
+
+	cnpj_fundo := r.URL.Query().Get("cnpj_fundo")
+	if cnpj_fundo == "" {
+		http.Error(w, "Parâmetro 'cnpj_fundo' é obrigatório", http.StatusBadRequest)
+		return
+	}
+
+	// Conecta ao banco
+	db, err := conectaDB()
+	if err != nil {
+		http.Error(w, "Erro ao conectar ao banco de dados: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	cnpj_fundo = "'" + cnpj_fundo + "'"
+
+	rows, err := executarConsultaWithOneParam(db, "sql/registro_fundo_nome_fundo.sql", "cnpj_fundo", cnpj_fundo)
+	if err != nil {
+		http.Error(w, "Erro ao executar consulta: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Processa os resultados
+	var fundos []models.RegistroFundoNomeFundo
+	for rows.Next() {
+		var fundo models.RegistroFundoNomeFundo
+		err = rows.Scan(
+			&fundo.DenominacaoSocial,
 		)
 		if err != nil {
 			http.Error(w, "Erro ao fazer scan dos dados: "+err.Error(), http.StatusInternalServerError)
