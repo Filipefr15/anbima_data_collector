@@ -1,1 +1,0 @@
-select * from cadastro_fi where sit = 'EM FUNCIONAMENTO NORMAL'
