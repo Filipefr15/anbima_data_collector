@@ -1,1 +1,1 @@
-# anbima_dAndD_golang
+Nesse módulo temos o download dos dados do site da cvm/anbima e posterior inserção das informações no banco de dados (para ser consumido na api que passará ao front)
