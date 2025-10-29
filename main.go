@@ -5,25 +5,6 @@ import (
 	"net/http"
 )
 
-// corsMiddleware adiciona headers CORS para aceitar requisições de qualquer origem
-func corsMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Define headers CORS
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		// Handle preflight requests
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-
-		// Chama o próximo handler
-		next(w, r)
-	}
-}
-
 func main() {
 	fmt.Println("Selecione uma opção:")
 	fmt.Println("1 - Iniciar downloads e descompactação")
@@ -219,10 +200,10 @@ func startServer() {
 	}
 
 	// Aplica CORS middleware aos handlers
-	http.HandleFunc("/searchInfo", corsMiddleware(searchInfoHandler))
+	http.HandleFunc("/searchInfo", searchInfoHandler)
 	fmt.Println("search info carregado")
-	http.HandleFunc("/searchFIDC", corsMiddleware(searchFIDCHandler))
-	http.HandleFunc("/searchLamina", corsMiddleware(searchLaminaHandler))
+	http.HandleFunc("/searchFIDC", searchFIDCHandler)
+	http.HandleFunc("/searchLamina", searchLaminaHandler)
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
 }
@@ -241,8 +222,8 @@ func startServer2() {
 	}
 
 	// Aplica CORS middleware aos handlers
-	http.HandleFunc("/searchFip", corsMiddleware(searchFipHandler))
-	http.HandleFunc("/searchCda", corsMiddleware(searchCdaHandler))
+	http.HandleFunc("/searchFip", searchFipHandler)
+	http.HandleFunc("/searchCda", searchCdaHandler)
 	fmt.Println("Servidor iniciado em :8080")
 	http.ListenAndServe(":8080", nil)
 }
