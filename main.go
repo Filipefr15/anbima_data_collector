@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 )
 
 func main() {
@@ -53,7 +52,7 @@ func main() {
 				anoMes = ano*100 + mes
 			}
 		case 3:
-			startServer()
+
 		case 4:
 			runDownloadsFIDC([]int{2021, 2022, 2023, 2024, 2025}, []string{"fidc"})
 			fmt.Println("FIDC's baixados com sucesso.")
@@ -79,7 +78,7 @@ func main() {
 			runDownloadsFIP([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"fip"})
 			fmt.Println("FIP's baixados com sucesso.")
 		case 10:
-			startServer2()
+
 		case 11:
 			downloadCsvDescompactado([]string{"adm_fii"}, "cad")
 			fmt.Println("Cadastro de administradores de FII baixados com sucesso.")
@@ -189,41 +188,4 @@ func main() {
 			return
 		}
 	}
-}
-
-func startServer() {
-	// ...existing code...
-	err := loadFIDCCache()
-	if err != nil {
-		fmt.Println("Erro ao carregar cache FIDC:", err)
-		return
-	}
-
-	// Aplica CORS middleware aos handlers
-	http.HandleFunc("/searchInfo", searchInfoHandler)
-	fmt.Println("search info carregado")
-	http.HandleFunc("/searchFIDC", searchFIDCHandler)
-	http.HandleFunc("/searchLamina", searchLaminaHandler)
-	fmt.Println("Servidor iniciado em :8080")
-	http.ListenAndServe(":8080", nil)
-}
-
-func startServer2() {
-	err := loadFipCache()
-	if err != nil {
-		fmt.Println("Erro ao carregar cache FIDC:", err)
-		return
-	}
-
-	err = loadCdaCache()
-	if err != nil {
-		fmt.Println("Erro ao carregar cache CDA:", err)
-		return
-	}
-
-	// Aplica CORS middleware aos handlers
-	http.HandleFunc("/searchFip", searchFipHandler)
-	http.HandleFunc("/searchCda", searchCdaHandler)
-	fmt.Println("Servidor iniciado em :8080")
-	http.ListenAndServe(":8080", nil)
 }
