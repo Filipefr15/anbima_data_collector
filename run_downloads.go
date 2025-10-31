@@ -15,24 +15,106 @@ type Job struct {
 	aux  string
 }
 
-func runDownloads(anos []int, objetoBuscado []string) {
+func runDownloads(anos []int, objetoBuscado []string, historico bool) {
 	var jobs []Job
 
-	for _, objeto := range objetoBuscado {
-		for _, ano := range anos {
-			for mes := 12; mes >= 1; mes-- {
-				url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/%s/DADOS/%s_fi_%d%02d.zip", objeto, objeto, ano, mes)
-				output := fmt.Sprintf("%s_fi_%d%02d.zip", objeto, ano, mes)
+	if historico {
+		for _, objeto := range objetoBuscado {
+			for _, ano := range anos {
+				url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/%s/DADOS/HIST/%s_fi_%d.zip", objeto, objeto, ano)
+				output := fmt.Sprintf("%s_fi_%d.zip", objeto, ano)
 				dest := "csvs/" + objeto
 
 				jobs = append(jobs, Job{
 					ano:  ano,
-					mes:  mes,
 					url:  url,
 					file: output,
 					dest: dest,
 				})
 			}
+		}
+	} else {
+		for _, objeto := range objetoBuscado {
+			for _, ano := range anos {
+				for mes := 12; mes >= 1; mes-- {
+					url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/%s/DADOS/%s_fi_%d%02d.zip", objeto, objeto, ano, mes)
+					output := fmt.Sprintf("%s_fi_%d%02d.zip", objeto, ano, mes)
+					dest := "csvs/" + objeto
+
+					jobs = append(jobs, Job{
+						ano:  ano,
+						mes:  mes,
+						url:  url,
+						file: output,
+						dest: dest,
+					})
+				}
+			}
+		}
+	}
+
+	const maxWorkers = 12
+	sem := make(chan struct{}, maxWorkers)
+	var wg sync.WaitGroup
+
+	for _, job := range jobs {
+		wg.Add(1)
+		go func(job Job) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
+			err := downloadFile(job.url, job.file)
+			if err != nil {
+				fmt.Println("Erro download:", err)
+				if err := os.Remove(job.file); err != nil {
+					fmt.Printf("Erro ao excluir o arquivo %s: %v, tentando novamente...\n", job.file, err)
+					if err := os.Remove(job.file); err != nil {
+						fmt.Printf("Erro ao excluir o arquivo %s: %v\n", job.file, err)
+					} else {
+						fmt.Printf("Arquivo %s excluído com sucesso.\n", job.file)
+					}
+				} else {
+					fmt.Printf("Arquivo %s excluído com sucesso.\n", job.file)
+				}
+				return
+			}
+
+			err = unzip(job.file, job.dest)
+			if err != nil {
+				fmt.Println("Erro unzip:", err)
+				return
+			}
+			fmt.Printf("Arquivo %s descompactado em: %s\n", job.file, job.dest)
+
+			if err := os.Remove(job.file); err != nil {
+				fmt.Printf("Erro ao excluir o arquivo %s: %v\n", job.file, err)
+			} else {
+				fmt.Printf("Arquivo %s excluído com sucesso.\n", job.file)
+			}
+		}(job)
+	}
+
+	wg.Wait()
+	fmt.Println("Todos os downloads concluídos.")
+}
+
+// Download de arquivos na aba "HIST"
+func runDownloadsHistorico(anos []int, objetoBuscado []string) {
+	var jobs []Job
+
+	for _, objeto := range objetoBuscado {
+		for _, ano := range anos {
+			url := fmt.Sprintf("https://dados.cvm.gov.br/dados/FI/DOC/%s/DADOS/HIST/%s_fi_%d.zip", objeto, objeto, ano)
+			output := fmt.Sprintf("%s_fi_%d.zip", objeto, ano)
+			dest := "csvs/" + objeto
+
+			jobs = append(jobs, Job{
+				ano:  ano,
+				url:  url,
+				file: output,
+				dest: dest,
+			})
 		}
 	}
 

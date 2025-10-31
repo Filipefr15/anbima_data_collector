@@ -21,11 +21,6 @@ func database(tableName, csvFile string) {
 	user := os.Getenv("USER")
 	password := os.Getenv("PASSWORD")
 	dbName := os.Getenv("DATABASE")
-	// Configuração inicial (conecta ao banco postgres padrão)
-	//adminConnStr := "host=localhost port=5432 user=postgres password=123456 dbname=postgres sslmode=disable"
-	// dbName := "anbimainfo"
-	// tableName := "cadastro_adm_fii"
-	// csvFile := "adm_fii_padronized/cad_adm_fii.csv"
 
 	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
 	// 1. Cria o banco de dados se não existir

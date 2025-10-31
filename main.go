@@ -26,12 +26,12 @@ func main() {
 		switch escolha {
 		// ...existing code...
 		case 1:
-			runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"})
+			runDownloads([]int{2021, 2022, 2023, 2024, 2025}, []string{"inf_diario"}, false)
 			fmt.Println("Informes diários baixados com sucesso.")
-			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"})
+			runDownloads([]int{2019, 2020, 2021, 2022, 2023, 2024, 2025}, []string{"lamina"}, false)
 			fmt.Println("Lâminas baixadas com sucesso.")
 		case 2:
-			runDownloads([]int{2025}, []string{"inf_diario"})
+			runDownloads([]int{2025}, []string{"inf_diario"}, false)
 			fmt.Println("Informes diários baixados com sucesso.")
 			csvPadronizationInfDiario([]int{2025}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
 			fmt.Println("Inf_diario organizado com sucesso!")
@@ -52,7 +52,12 @@ func main() {
 				anoMes = ano*100 + mes
 			}
 		case 3:
-
+			runDownloads([]int{2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018}, []string{"inf_diario"}, true)
+			fmt.Println("Download Inf_diario realizado com sucesso!")
+			csvPadronizationInfDiario([]int{2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+			fmt.Println("Inf_diario organizado com sucesso!")
+			pickLastDayOfMonthInfDiario([]int{2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020}, []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12})
+			fmt.Println("Último dia de cada mês selecionado com sucesso!")
 		case 4:
 			runDownloadsFIDC([]int{2021, 2022, 2023, 2024, 2025}, []string{"fidc"})
 			fmt.Println("FIDC's baixados com sucesso.")
@@ -94,7 +99,7 @@ func main() {
 			fmt.Println("Cadastro de informações de fundos (registro_fundo_classe) baixados com sucesso.")
 			simpleCsvPadronization([]string{"fi"}, []string{"classe", "fundo", "subclasse"}, "cad", "registro")
 		case 14:
-			runDownloads([]int{2023, 2024, 2025}, []string{"cda"})
+			runDownloads([]int{2023, 2024, 2025}, []string{"cda"}, false)
 		case 15:
 			csvPadronizationCda()
 		case 16:
